@@ -386,7 +386,7 @@ var fileService = dummy.FileService{
 								 "straightvar" "foo"
 								 "condvar" true }}
 	}`,
-		//This is for one dinghy file having an if-else conditional and being true
+		// This is for one dinghy file having an if-else conditional and being true
 		"if_params_indinghyfiletrue.dinghyfile": `{
 		  {{ if eq "test" "test" }}
 		  "test": "true"
@@ -394,7 +394,7 @@ var fileService = dummy.FileService{
 		  "test": "false"
 		  {{ end }}
 	}`,
-		//This is for one dinghy file having an if-else conditional and being false
+		// This is for one dinghy file having an if-else conditional and being false
 		"if_params_indinghyfilefalse.dinghyfile": `{
 		  {{ if eq "teste" "test" }}
 		  "test": "true"
@@ -402,7 +402,7 @@ var fileService = dummy.FileService{
 		  "test": "false"
 		  {{ end }}
 	}`,
-		//Test RawData and a conditional of it with test pusher name
+		// Test RawData and a conditional of it with test pusher name
 		"rawData.dinghyfile": `{
 		  "testprint" : "{{ .RawData.pusher.name }}",
 		  {{ if eq .RawData.pusher.name "Codertocat" }}
@@ -411,7 +411,7 @@ var fileService = dummy.FileService{
 			"test": "false"
 		  {{ end }}
 	}`,
-		//Test no space parsing in dinghyfile
+		// Test no space parsing in dinghyfile
 		"no_space.dinghyfile": `{
   "testprint" : "{{.RawData.pusher.name}}"
 }`,

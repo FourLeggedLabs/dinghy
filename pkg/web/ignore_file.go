@@ -48,7 +48,7 @@ func NewRegexpIgnoreFile(patterns []string, logger dinghylog.DinghyLog) IgnoreFi
 }
 
 func NewRegexp2IgnoreFile(patterns []string, logger dinghylog.DinghyLog) IgnoreFile {
-	var regExps []*regexp2.Regexp
+	regExps := make([]*regexp2.Regexp, 0, len(patterns))
 	for _, pattern := range patterns {
 		regExps = append(regExps, regexp2.MustCompile(pattern, 0))
 	}

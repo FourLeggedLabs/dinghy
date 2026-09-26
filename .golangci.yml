@@ -9,10 +9,12 @@ linters:
     - bodyclose
     - copyloopvar
     - errcheck
+    - gocritic
     - gosec
     - govet
     - ineffassign
     - misspell
+    - prealloc
     - staticcheck
     - unused
   settings:

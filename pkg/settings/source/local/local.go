@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	//LocalConfigSource is a variable of type string
+	// LocalConfigSource is a variable of type string
 	LocalConfigSource = "LocalSource"
 )
 

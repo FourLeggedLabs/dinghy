@@ -418,19 +418,17 @@ func (b *PipelineBuilder) updatePipelines(dinghyfile Dinghyfile, pusher string) 
 			b.Logger.Errorf("Failed to create application (%s)", failedResponse.Error())
 			return err
 		}
-	} else {
-		if b.saveAppOnUpdate() {
-			//UpdateApplication method updates application permissions. It is possible that a user, who pushed changes to repository
-			//doesn't have write access to the application, thus we need to prevent from updating the app.
-			err := b.UserWriteAccessValidation.Validate(app, pusher)
-			if err != nil {
-				return err
-			}
-			errUpdating := b.Client.UpdateApplication(app, "")
-			if errUpdating != nil {
-				b.Logger.Errorf("Failed to update application (%s)", errUpdating.Error())
-				return errUpdating
-			}
+	} else if b.saveAppOnUpdate() {
+		// UpdateApplication method updates application permissions. It is possible that a user, who pushed changes to repository
+		// doesn't have write access to the application, thus we need to prevent from updating the app.
+		err := b.UserWriteAccessValidation.Validate(app, pusher)
+		if err != nil {
+			return err
+		}
+		errUpdating := b.Client.UpdateApplication(app, "")
+		if errUpdating != nil {
+			b.Logger.Errorf("Failed to update application (%s)", errUpdating.Error())
+			return errUpdating
 		}
 	}
 

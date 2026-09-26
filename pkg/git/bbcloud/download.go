@@ -77,7 +77,7 @@ func (f *FileService) EncodeURL(org, repo, path, branch string) string {
 
 // DecodeURL takes a url and returns the org, repo, path and branch
 func (f *FileService) DecodeURL(url string) (org, repo, path, branch string) {
-	r, _ := regexp.Compile(`/repositories/(.+)/(.+)/src/([^/]+)/(.+)\?raw`)
+	r := regexp.MustCompile(`/repositories/(.+)/(.+)/src/([^/]+)/(.+)\?raw`)
 	match := r.FindStringSubmatch(url)
 	org = match[1]
 	repo = match[2]

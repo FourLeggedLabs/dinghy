@@ -71,7 +71,7 @@ func (v FiatPermissionsValidator) Validate(pusher string) error {
 	for _, applicationPermission := range v.application.Permissions.Write {
 		for _, role := range userRoles {
 			if applicationPermission == role {
-				//It's a match! No error to return
+				// It's a match! No error to return
 				log.Infof("%s has write permissions to application %s", pusher, v.application.Name)
 				return nil
 			}

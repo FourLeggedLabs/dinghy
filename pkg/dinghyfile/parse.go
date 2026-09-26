@@ -268,13 +268,14 @@ func (r *DinghyfileParser) Parse(org, repo, path, branch string, vars []VarMap) 
 		}
 
 		gvMap, ok := gvs.(map[string]interface{})
-		if !ok {
+		switch {
+		case !ok:
 			event.Dinghyfile = contents
 			r.Builder.EventClient.SendEvent("parse-err-globalvar", event)
 			return nil, fmt.Errorf("could not extract global vars from:\n %s", contents)
-		} else if len(gvMap) > 0 {
+		case len(gvMap) > 0:
 			vars = append(vars, gvMap)
-		} else {
+		default:
 			r.Builder.Logger.Info("No global vars found in dinghyfile")
 		}
 		r.Builder.GlobalVariablesMap = gvMap

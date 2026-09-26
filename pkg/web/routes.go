@@ -276,7 +276,7 @@ func contains(whvalidations []string, provider string) bool {
 func validateWebhookSignature(whvalidations []global.WebhookValidation, repo string, org string, provider string, body []byte, r *http.Request, logger dinghylog.DinghyLog) bool {
 	whcurrentvalidation := global.WebhookValidation{}
 	if found, whval := findWebhookValidation(whvalidations, repo, org, provider); found {
-		//If record is found and validation is disabled then just return true
+		// If record is found and validation is disabled then just return true
 		if !whval.Enabled {
 			logger.Infof("Webhook validation for %v/%v is disabled so validation will by bypassed", org, repo)
 			return true
@@ -298,11 +298,11 @@ func validateWebhookSignature(whvalidations []global.WebhookValidation, repo str
 		}
 	}
 	rawPayload := getRawPayload(body)
-	//X-Hub-Signature is the original header from github, but since this message is from echo we receive webhook-secret
+	// X-Hub-Signature is the original header from github, but since this message is from echo we receive webhook-secret
 	whsecret := getHeader(r, "webhook-secret")
 
 	if rawPayload == "" || whsecret == "" {
-		//Validate in webhook and raw_payload and webhook secret is present.
+		// Validate in webhook and raw_payload and webhook secret is present.
 		logger.Error("There is a webhook validation registered in dinghy but the webhook is not configured in github side")
 		return false
 	}

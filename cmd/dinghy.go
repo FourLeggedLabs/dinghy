@@ -124,6 +124,7 @@ func Setup(sourceConfiguration source.SourceConfiguration, log *logr.Logger) (*l
 	var persitenceManagerReadOnly dinghyfile.DependencyManager
 
 	// Full SQL mode
+	//nolint:gocritic // three long, distinct config branches read clearer as if/else-if
 	if config.SQL.Enabled && !config.SQL.EventLogsOnly {
 
 		sqlClient, sqlerr := database.NewMySQLClient(&database.SQLConfig{
@@ -243,15 +244,20 @@ func Start(log *logr.Logger, api *web.WebAPI, settings2 *global.Settings) {
 	ctx := context.Background()
 	shutdownOtel, err := otel.InitTracer(ctx, otel.ConfigFromEnv())
 	if err != nil {
+		shutdownOtel = nil
 		log.Warnf("failed to initialize OpenTelemetry: %v (continuing without tracing)", err)
 	} else {
-		defer func() { _ = shutdownOtel(ctx) }()
 		log.Infof("OpenTelemetry tracing enabled (endpoint=%s)", os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
 	}
 
 	log.Infof("Dinghy starting on %s", settings2.Server.GetAddr())
-	if err := server.NewServer(&settings2.Server).Start(otel.Handler(api.MuxRouter)); err != nil {
-		log.Fatal(err)
+	serverErr := server.NewServer(&settings2.Server).Start(otel.Handler(api.MuxRouter))
+
+	if shutdownOtel != nil {
+		_ = shutdownOtel(ctx)
+	}
+	if serverErr != nil {
+		log.Fatalf("server failed: %v", serverErr)
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	//RemoteConfigSource is a variable of type string
+	// RemoteConfigSource is a variable of type string
 	RemoteConfigSource = "RemoteSource"
 )
 
