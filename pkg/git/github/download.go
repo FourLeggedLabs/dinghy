@@ -104,7 +104,7 @@ func (f *FileService) DownloadContents(org, repo, path, branch string) (string, 
 		return "", err
 	}
 
-	//check GitHub response
+	// check GitHub response
 	if err = github.CheckResponse(resp); err != nil {
 		if e, ok := err.(*github.RateLimitError); ok {
 			return "", &util.GithubRateLimitErr{RateLimit: e.Rate.Limit, RateReset: e.Rate.Reset.String()}

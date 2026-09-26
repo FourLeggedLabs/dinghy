@@ -19,7 +19,6 @@ package events
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"net/http"
@@ -110,8 +109,9 @@ func (c *Client) postEvent(event payload) error {
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("debug at %s returned %d", c.Settings.SpinnakerSupplied.Echo.BaseURL, res.StatusCode))
+		return fmt.Errorf("debug at %s returned %d", c.Settings.SpinnakerSupplied.Echo.BaseURL, res.StatusCode)
 	}
 	return nil
 }

@@ -25,8 +25,8 @@ import (
 
 	"encoding/json"
 
-	"github.com/fourleggedlabs/dinghy/pkg/git/dummy"
 	"github.com/armory/plank/v4"
+	"github.com/fourleggedlabs/dinghy/pkg/git/dummy"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -386,7 +386,7 @@ var fileService = dummy.FileService{
 								 "straightvar" "foo"
 								 "condvar" true }}
 	}`,
-		//This is for one dinghy file having an if-else conditional and being true
+		// This is for one dinghy file having an if-else conditional and being true
 		"if_params_indinghyfiletrue.dinghyfile": `{
 		  {{ if eq "test" "test" }}
 		  "test": "true"
@@ -394,7 +394,7 @@ var fileService = dummy.FileService{
 		  "test": "false"
 		  {{ end }}
 	}`,
-		//This is for one dinghy file having an if-else conditional and being false
+		// This is for one dinghy file having an if-else conditional and being false
 		"if_params_indinghyfilefalse.dinghyfile": `{
 		  {{ if eq "teste" "test" }}
 		  "test": "true"
@@ -402,7 +402,7 @@ var fileService = dummy.FileService{
 		  "test": "false"
 		  {{ end }}
 	}`,
-		//Test RawData and a conditional of it with test pusher name
+		// Test RawData and a conditional of it with test pusher name
 		"rawData.dinghyfile": `{
 		  "testprint" : "{{ .RawData.pusher.name }}",
 		  {{ if eq .RawData.pusher.name "Codertocat" }}
@@ -411,7 +411,7 @@ var fileService = dummy.FileService{
 			"test": "false"
 		  {{ end }}
 	}`,
-		//Test no space parsing in dinghyfile
+		// Test no space parsing in dinghyfile
 		"no_space.dinghyfile": `{
   "testprint" : "{{.RawData.pusher.name}}"
 }`,
@@ -793,6 +793,7 @@ func TestModuleVariableSubstitution(t *testing.T) {
 	r := testDinghyfileParser()
 	ts := testStruct{}
 	ret, err := r.Parse("org", "repo", "df2", "master", nil)
+	assert.Nil(t, err)
 	err = json.Unmarshal(ret.Bytes(), &ts)
 	assert.Equal(t, nil, err)
 
@@ -808,7 +809,7 @@ func TestPipelineIDFunc(t *testing.T) {
 	r := testDinghyfileParser()
 
 	client := NewMockPlankClient(ctrl)
-	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{plank.Pipeline{ID: "pipelineID", Name: "trigger Pipeline"}}, nil).Times(1)
+	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{{ID: "pipelineID", Name: "trigger Pipeline"}}, nil).Times(1)
 	r.Builder.Client = client
 
 	vars := []VarMap{
@@ -842,7 +843,7 @@ func TestPipelineIDRender(t *testing.T) {
 	r := testDinghyfileParser()
 
 	client := NewMockPlankClient(ctrl)
-	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{plank.Pipeline{ID: "pipeline ID", Name: "trigger Pipeline"}}, nil).Times(1)
+	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{{ID: "pipeline ID", Name: "trigger Pipeline"}}, nil).Times(1)
 	r.Builder.Client = client
 
 	expected := `{

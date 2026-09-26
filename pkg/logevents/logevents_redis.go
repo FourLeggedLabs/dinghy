@@ -67,8 +67,8 @@ func (c LogEventRedisClient) SaveLogEvent(logEvent LogEvent) error {
 		filesSet[value] = true
 	}
 	// Deck does not like null values
-	files := []string{}
-	for key, _ := range filesSet {
+	files := make([]string, 0, len(filesSet))
+	for key := range filesSet {
 		files = append(files, key)
 	}
 	// Deck does not like null values

@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/log"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -199,7 +199,7 @@ func getFilesChanged(fromCommitHash, toCommitHash string, page int, cfg Config,
 
 func handleDiffstatResponse(resp *http.Response, logger log.DinghyLog) (changedFiles []string, hasNext bool, err error) {
 	var apiResponse DiffStatResponse
-	respRaw, err := ioutil.ReadAll(resp.Body)
+	respRaw, err := io.ReadAll(resp.Body)
 	respString := string(respRaw)
 	logger.Debugf("DiffStatResponse: %s\n", respString)
 
@@ -250,7 +250,7 @@ func (p *Push) Repo() string {
 // Org returns the name of the project.
 func (p *Push) Org() string {
 	parts := strings.Split(p.Payload.Repository.FullName, "/")
-	if parts != nil && len(parts) > 0 {
+	if len(parts) > 0 {
 		return parts[0]
 	} else {
 		return ""

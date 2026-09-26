@@ -143,15 +143,16 @@ func Preprocess(text string) (string, error) {
 			ch := it.get()
 			var part string
 
-			if unicode.IsSpace(ch) {
+			switch {
+			case unicode.IsSpace(ch):
 				part = parseWhitespace(it)
-			} else if ch == '"' {
+			case ch == '"':
 				part = parseString(it)
-			} else if ch == '{' || ch == '[' {
+			case ch == '{' || ch == '[':
 				part = parseJSONObject(it)
-			} else if isElvisOperator(it) {
+			case isElvisOperator(it):
 				part = parseElvisOperator(it)
-			} else {
+			default:
 				part = parseToken(it)
 			}
 
@@ -215,7 +216,7 @@ func removeModules(input string, gitInfo git.GitInfo) string {
 	}
 
 	// All sprout functions will be changed for a dummy slice
-	for key, _ := range sprout.GenericFuncMap() {
+	for key := range sprout.GenericFuncMap() {
 		funcMap[key] = dummySlice
 	}
 

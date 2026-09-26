@@ -110,9 +110,7 @@ func returnRoots(c *SQLClient, url string) []string {
 					c.Client.Where(&Fileurl{Id: currParent.FileurlID}).Find(&resultUrl)
 					results = append(results, resultUrl.Url)
 				} else {
-					for _, currRecord := range records {
-						tempParent = append(tempParent, currRecord)
-					}
+					tempParent = append(tempParent, records...)
 				}
 			}
 			if len(tempParent) == 0 {

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/xanzy/go-gitlab"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 )
@@ -42,7 +42,7 @@ func NewTestClient(statusCode int, contents string) *gitlab.Client {
 	httpClient := NewRoundTripTestClient(func(req *http.Request) *http.Response {
 		return &http.Response{
 			StatusCode: statusCode,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(contents)),
+			Body:       io.NopCloser(bytes.NewBufferString(contents)),
 			Header:     make(http.Header),
 		}
 	})

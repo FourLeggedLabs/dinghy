@@ -65,7 +65,7 @@ func (p *Push) GetCommitStatus() (error, git.Status, string) {
 
 // Commits return the list of commit hashes
 func (p *Push) GetCommits() []string {
-	var result []string
+	result := make([]string, 0, len(p.Commits))
 	for _, val := range p.Commits {
 		result = append(result, val.ID)
 	}

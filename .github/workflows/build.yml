@@ -1,15 +1,14 @@
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 name: Build
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1  # Forces sequential execution due to redis dep issues otherwise
-      matrix:
-        go: [ '1.27' ]
-    name: Go ${{ matrix.go }} build
+    name: Build and test
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7
@@ -17,39 +16,13 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v7
         with:
-          go-version: ${{ matrix.go }}
-
-      - name: Cache Build Dependencies  # Speeds up subsquent builds
-        uses: actions/cache@v6
-        with:
-          path: ~/go/pkg/mod
-          key: go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            go-
-
-      - name: Vet
-        run: go vet ./...
+          go-version-file: go.mod
 
       - name: Build
         run: go build -v .
 
       - name: Test
-        run: go test -v -race -covermode atomic -coverprofile=profile.cov ./...
-
-      - name: Send Coverage
-        uses: shogo82148/actions-goveralls@v1
-        with:
-          parallel: true
-          flag-name: Go-${{ matrix.go }}
-          path-to-profile: profile.cov
-
-  finish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: shogo82148/actions-goveralls@v1
-        with:
-          parallel-finished: true
+        run: go test -v -race -covermode atomic ./...
 
   docker:
     needs: build

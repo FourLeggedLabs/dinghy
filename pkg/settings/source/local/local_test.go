@@ -5,7 +5,6 @@ import (
 	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
 	log "github.com/sirupsen/logrus"
-	logr "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -21,7 +20,7 @@ func TestNewLocalSource(t *testing.T) {
 
 func TestLocalSource_Load(t *testing.T) {
 	localSource := loadTestData()
-	logrus := logr.New()
+	logrus := log.New()
 	config, err := localSource.LoadSetupSettings(logrus)
 
 	assert.Nil(t, err)
@@ -33,7 +32,7 @@ func TestLocalSource_Load(t *testing.T) {
 
 func TestLocalSource_GetConfigurationByKey(t *testing.T) {
 	localSource := loadTestData()
-	logrus := logr.New()
+	logrus := log.New()
 	_, _ = localSource.LoadSetupSettings(logrus)
 	r := new(http.Request)
 	config, _, err := localSource.GetSettings(r, logrus)

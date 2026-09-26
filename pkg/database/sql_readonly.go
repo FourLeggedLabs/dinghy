@@ -17,17 +17,13 @@
 package database
 
 import (
-	"context"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 // RedisCacheReadOnly maintains a dependency graph inside Redis
 type SQLReadOnly struct {
 	Client *SQLClient
 	Logger *log.Entry
-	ctx    context.Context
-	stop   chan os.Signal
 }
 
 // SetDeps sets dependencies for a parent

@@ -27,10 +27,10 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/armory/plank/v4"
 	"github.com/fourleggedlabs/dinghy/pkg/events"
 	"github.com/fourleggedlabs/dinghy/pkg/notifiers"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
-	"github.com/armory/plank/v4"
 )
 
 type VarMap map[string]interface{}
@@ -135,7 +135,7 @@ func (b *PipelineBuilder) UpdateDinghyfile(dinghyfile []byte) (Dinghyfile, error
 	d := NewDinghyfile()
 	// try every parser, maybe we'll get lucky
 	parseErrs := 0
-	suceeded := false
+	succeeded := false
 	var parseError error
 	for _, ums := range b.Ums {
 		if err := ums.Unmarshal(dinghyfile, &d); err != nil {
@@ -143,10 +143,10 @@ func (b *PipelineBuilder) UpdateDinghyfile(dinghyfile []byte) (Dinghyfile, error
 			parseErrs++
 			continue
 		} else {
-			suceeded = true
+			succeeded = true
 		}
 	}
-	if !suceeded && parseErrs != 0 && parseError != nil {
+	if !succeeded && parseErrs != 0 && parseError != nil {
 		b.Logger.Warnf("UpdateDinghyfile malformed syntax: %s", parseError.Error())
 	}
 	event := &events.Event{
@@ -418,19 +418,17 @@ func (b *PipelineBuilder) updatePipelines(dinghyfile Dinghyfile, pusher string) 
 			b.Logger.Errorf("Failed to create application (%s)", failedResponse.Error())
 			return err
 		}
-	} else {
-		if b.saveAppOnUpdate() {
-			//UpdateApplication method updates application permissions. It is possible that a user, who pushed changes to repository
-			//doesn't have write access to the application, thus we need to prevent from updating the app.
-			err := b.UserWriteAccessValidation.Validate(app, pusher)
-			if err != nil {
-				return err
-			}
-			errUpdating := b.Client.UpdateApplication(app, "")
-			if errUpdating != nil {
-				b.Logger.Errorf("Failed to update application (%s)", errUpdating.Error())
-				return errUpdating
-			}
+	} else if b.saveAppOnUpdate() {
+		// UpdateApplication method updates application permissions. It is possible that a user, who pushed changes to repository
+		// doesn't have write access to the application, thus we need to prevent from updating the app.
+		err := b.UserWriteAccessValidation.Validate(app, pusher)
+		if err != nil {
+			return err
+		}
+		errUpdating := b.Client.UpdateApplication(app, "")
+		if errUpdating != nil {
+			b.Logger.Errorf("Failed to update application (%s)", errUpdating.Error())
+			return errUpdating
 		}
 	}
 

@@ -81,7 +81,7 @@ func (p *Push) ContainsFile(file string) bool {
 
 // Files returns a slice containing filenames that were added/modified
 func (p *Push) Files() []string {
-	ret := make([]string, 0, 0)
+	ret := make([]string, 0)
 	if p.Commits == nil {
 		return ret
 	}

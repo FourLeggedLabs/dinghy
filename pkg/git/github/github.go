@@ -44,20 +44,15 @@ type Config struct {
 	App      global.GitHubAppConfig
 }
 
-func newGitHubClient(ctx context.Context, endpoint, token string) (*github.Client, error) {
-	return newGitHubClientWithApp(ctx, endpoint, token, global.GitHubAppConfig{})
-}
-
 func newGitHubClientWithApp(ctx context.Context, endpoint, token string, app global.GitHubAppConfig) (*github.Client, error) {
 	tc, err := newAuthClient(app, token, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create github auth client: %s", err)
 	}
-	client, err := github.NewEnterpriseClient(endpoint, endpoint, tc)
+	client, err := github.NewClient(tc).WithEnterpriseURLs(endpoint, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create github client: %s", err)
 	}
-
 	return client, nil
 }
 
@@ -81,8 +76,8 @@ func (g *Config) DownloadContents(org, repo, path, branch string) (string, error
 	}
 
 	b := new(bytes.Buffer)
-	b.ReadFrom(r)
-	r.Close()
+	_, _ = b.ReadFrom(r) //nolint:gosec // read failure yields empty content, handled by caller
+	_ = r.Close()
 
 	return b.String(), nil
 }

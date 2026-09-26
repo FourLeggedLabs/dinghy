@@ -75,7 +75,7 @@ func (execution *RedisToSQLMigration) Execute() (map[string]interface{}, error) 
 
 	execution.Logger.Infof("Executing %v", execution.ExecutionName())
 
-	if execution.CanExecute() == false {
+	if !execution.CanExecute() {
 		execution.Logger.Infof("%v will not be executed because CanExecute method returned false", execution.ExecutionName())
 		return nil, nil
 	}
@@ -113,7 +113,9 @@ func (execution *RedisToSQLMigration) Execute() (map[string]interface{}, error) 
 	for _, dinghyfile := range dinghyfiles {
 		rawdata, err := execution.RedisCache.GetRawData(dinghyfile)
 		if rawdata != "" && err == nil {
-			execution.SQLClient.SetRawData(dinghyfile, rawdata)
+			if errSet := execution.SQLClient.SetRawData(dinghyfile, rawdata); errSet != nil {
+				execution.Logger.Errorf("failed to persist raw data for %s: %v", dinghyfile, errSet)
+			}
 		}
 	}
 

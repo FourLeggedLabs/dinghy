@@ -678,7 +678,7 @@ func TestValidatePipelines(t *testing.T) {
 					continue
 				}
 			}
-			//Log parsing issues as an error in test
+			// Log parsing issues as an error in test
 			if parseErrs != 0 {
 				assert.True(t, true, false)
 			} else {
@@ -822,7 +822,7 @@ func TestValidateAppNotifications(t *testing.T) {
 					continue
 				}
 			}
-			//Log parsing issues as an error in test
+			// Log parsing issues as an error in test
 			if parseErrs != 0 {
 				assert.True(t, true, false)
 			} else {
@@ -862,7 +862,7 @@ func TestGetPipelineByID(t *testing.T) {
 
 	emptyset := []plank.Pipeline{}
 	foundset := []plank.Pipeline{
-		plank.Pipeline{Name: "pipelineName", ID: "pipelineID"},
+		{Name: "pipelineName", ID: "pipelineID"},
 	}
 
 	client := NewMockPlankClient(ctrl)
@@ -902,7 +902,7 @@ func TestGetPipelineByIDWhenApplicationNotExist(t *testing.T) {
 
 	emptyset := []plank.Pipeline{}
 	foundset := []plank.Pipeline{
-		plank.Pipeline{Name: "pipelineName", ID: "pipelineID"},
+		{Name: "pipelineName", ID: "pipelineID"},
 	}
 
 	client := NewMockPlankClient(ctrl)
@@ -1245,10 +1245,10 @@ type mockNotifier struct {
 }
 
 func (m *mockNotifier) SendSuccess(org, repo, path string, notificationsType plank.NotificationsType, content map[string]interface{}) {
-	m.SuccessCalls = m.SuccessCalls + 1
+	m.SuccessCalls++
 }
 func (m *mockNotifier) SendFailure(org, repo, path string, err error, notificationsType plank.NotificationsType, content map[string]interface{}) {
-	m.FailureCalls = m.FailureCalls + 1
+	m.FailureCalls++
 	m.LastError = err
 }
 

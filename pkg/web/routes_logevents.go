@@ -36,7 +36,9 @@ func saveLogEvent(logeventClient logevents.LogEventsClient, p Push, dinghyLog di
 	if buf, err := dinghyLog.GetBytesBuffByLoggerKey(dinghylog.LogEventKey); err == nil {
 		logEvent.Message = fmt.Sprintf("%v", buf)
 		logEvent.Status = status
-		logeventClient.SaveLogEvent(logEvent)
+		if err := logeventClient.SaveLogEvent(logEvent); err != nil {
+			dinghyLog.Errorf("failed to save log event: %v", err)
+		}
 	}
 }
 

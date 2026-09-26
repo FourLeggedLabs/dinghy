@@ -178,7 +178,7 @@ var fileService = dummy.FileService{
 // 	assert.Nil(t, err)
 // }
 
-//var pipelineIDFileService = dummy.FileService{
+// var pipelineIDFileService = dummy.FileService{
 //	settings.S.DinghyFilename: `{
 //		"application": "pipelineidtest",
 //		"pipelines": [{

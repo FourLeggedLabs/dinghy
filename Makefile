@@ -16,6 +16,10 @@ test: build
 vet:
 	@go vet ./...
 
+# Run golangci-lint (falls back to vet if not installed)
+lint:
+	@command -v golangci-lint >/dev/null 2>&1 && golangci-lint run || go vet ./...
+
 # Format all Go code
 format:
 	@gofmt -l -w .

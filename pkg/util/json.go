@@ -27,7 +27,9 @@ func WriteJSON(obj interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "  ")
-	encoder.Encode(obj)
+	// Errors cannot be meaningfully recovered here: headers may already be
+	// written to the client.
+	_ = encoder.Encode(obj)
 }
 
 // ReadJSON takes a json byte stream from a reader and decodes it into the struct passed in.

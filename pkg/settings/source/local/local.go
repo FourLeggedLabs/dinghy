@@ -1,17 +1,17 @@
 package local
 
 import (
+	"github.com/armory/plank/v4"
 	"github.com/fourleggedlabs/dinghy/pkg/debug"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
-	"github.com/armory/plank/v4"
 	logr "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 const (
-	//LocalConfigSource is a variable of type string
+	// LocalConfigSource is a variable of type string
 	LocalConfigSource = "LocalSource"
 )
 

@@ -107,7 +107,7 @@ func (a *appTokenSource) Token() (*oauth2.Token, error) {
 	jwtClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: jwtTok},
 	))
-	jwtGH, err := github.NewEnterpriseClient(a.api, a.api, jwtClient)
+	jwtGH, err := github.NewClient(jwtClient).WithEnterpriseURLs(a.api, a.api)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create github client for app auth: %w", err)
 	}
