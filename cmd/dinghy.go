@@ -20,13 +20,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/armory/go-yaml-tools/pkg/tls/server"
 	"github.com/fourleggedlabs/dinghy/pkg/database"
 	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
 	"github.com/fourleggedlabs/dinghy/pkg/execution"
 	"github.com/fourleggedlabs/dinghy/pkg/logevents"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
-	"github.com/armory/go-yaml-tools/pkg/tls/server"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,13 +35,14 @@ import (
 
 	"github.com/fourleggedlabs/dinghy/pkg/debug"
 
+	"github.com/armory/plank/v4"
 	"github.com/fourleggedlabs/dinghy/pkg/log/formatters"
 	"github.com/fourleggedlabs/dinghy/pkg/log/hooks"
-	"github.com/armory/plank/v4"
+	"github.com/fourleggedlabs/dinghy/pkg/notifiers"
 
 	"github.com/fourleggedlabs/dinghy/pkg/cache"
-	"github.com/fourleggedlabs/dinghy/pkg/otel"
 	"github.com/fourleggedlabs/dinghy/pkg/events"
+	"github.com/fourleggedlabs/dinghy/pkg/otel"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/fourleggedlabs/dinghy/pkg/web"
 	"github.com/go-redis/redis"
@@ -210,6 +211,11 @@ func Setup(sourceConfiguration source.SourceConfiguration, log *logr.Logger) (*l
 	if config.ParserFormat == "json" {
 		api.SetDinghyfileParser(dinghyfile.NewDinghyfileParser(&dinghyfile.PipelineBuilder{}))
 	}
+	if os.Getenv("SLACK_BOT_TOKEN") != "" {
+		api.AddNotifier(notifiers.NewRichSlackNotifier(log))
+		log.Info("Rich Slack notifications enabled (SLACK_BOT_TOKEN set)")
+	}
+
 	return log, api
 }
 
