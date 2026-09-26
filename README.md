@@ -1,5 +1,86 @@
-# dinghy
+# dinghy (fourleggedlabs)
 
+A maintained fork of [armory/dinghy](https://github.com/armory/dinghy), which
+has been dormant since July 2025. Dinghy allows you to create and maintain
+Spinnaker pipeline templates in source control.
+
+## Why this fork
+
+Upstream development stopped in mid-2025. This fork carries the project
+forward with modern dependencies and new capabilities, while keeping the core
+Dinghyfile rendering engine and webhook flow byte-compatible with upstream.
+
+### New in this fork
+
+**GitHub App authentication** (instead of a static PAT)
+
+```yaml
+githubApp:
+  appID: 123456
+  installationID: 789012
+  privateKeyPath: /etc/dinghy/github-app.pem   # or privateKey: <inline PEM or base64>
+```
+
+Installation tokens are cached and auto-refreshed. Falls back to
+`githubToken` when `githubApp` is not configured. The App installation needs
+`Contents: read`, `Commit statuses: read & write`, and (for template pushes)
+`Contents: write` permissions.
+
+**Native OpenTelemetry tracing**
+
+Enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` (any standard `OTEL_*` env
+vars are honored — grpc and http/protobuf exporters supported):
+
+```yaml
+OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
+OTEL_EXPORTER_OTLP_PROTOCOL: grpc          # or http/protobuf
+OTEL_SERVICE_NAME: dinghy
+```
+
+Server spans are created per request; the `buildPipelines` span carries
+`dinghy.provider/org/repo/branch` attributes and records render/upsert
+errors. W3C `traceparent` from upstream (e.g. Spinnaker) is propagated.
+
+**Rich Slack notifications for pipeline updates**
+
+Set `SLACK_BOT_TOKEN` (bot token, `xoxb-...`) and dinghy posts Block Kit
+messages on pipeline create/update/delete — header with outcome, dinghyfile
+path, repository, commit author/SHA/message, and errors on failure.
+
+Channels come from the existing notification block in your Dinghyfile or
+Spinnaker application:
+
+```json
+"notifications": {
+  "slack": [{ "addresses": ["#ci"], "when": ["pipeline.update"] }]
+}
+```
+
+Set `SLACK_DEFAULT_CHANNEL` for a catch-all channel. Channel IDs (e.g.
+`C0123ABCDEF`) work as well as `#channel` names.
+
+**GitHub commit status checks**
+
+Unchanged from upstream and fully compatible with GitHub App auth: dinghy
+posts pending/success/failure statuses (context = your `instanceId`) on the
+commits that triggered processing.
+
+### Differences from upstream
+
+- Module renamed to `github.com/fourleggedlabs/dinghy`
+- Go 1.27, go-github v33 → v74, vet-clean, distroless multi-arch image
+- Removed nothing: all upstream endpoints, providers (GitHub, GitLab, Stash,
+  Bitbucket Cloud/Server), and settings remain supported
+
+---
+
+# Upstream documentation
+
+Dinghy allows you to create and maintain Spinnaker pipeline templates in source
+control.
+
+Read more in our
+[documentation](https://docs.armory.io/docs/armory-admin/dinghy-enable/).
 Dinghy allows you to create and maintain Spinnaker pipeline templates in source
 control.
 
