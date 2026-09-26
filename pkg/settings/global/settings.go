@@ -299,6 +299,9 @@ func (s *Settings) Redacted() *Settings {
 	if redacted.GitHubToken != "" {
 		redacted.GitHubToken = "**REDACTED**"
 	}
+	if redacted.GitHubApp.PrivateKey != "" {
+		redacted.GitHubApp.PrivateKey = "**REDACTED**"
+	}
 	if redacted.GitLabToken != "" {
 		redacted.GitLabToken = "**REDACTED**"
 	}

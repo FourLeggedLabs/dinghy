@@ -21,9 +21,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/google/go-github/v74/github"
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -41,13 +41,18 @@ type GitHubClient interface {
 type Config struct {
 	Endpoint string
 	Token    string
+	App      global.GitHubAppConfig
 }
 
 func newGitHubClient(ctx context.Context, endpoint, token string) (*github.Client, error) {
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
+	return newGitHubClientWithApp(ctx, endpoint, token, global.GitHubAppConfig{})
+}
+
+func newGitHubClientWithApp(ctx context.Context, endpoint, token string, app global.GitHubAppConfig) (*github.Client, error) {
+	tc, err := newAuthClient(app, token, endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create github auth client: %s", err)
+	}
 	client, err := github.NewEnterpriseClient(endpoint, endpoint, tc)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create github client: %s", err)
@@ -58,7 +63,7 @@ func newGitHubClient(ctx context.Context, endpoint, token string) (*github.Clien
 
 func (g *Config) DownloadContents(org, repo, path, branch string) (string, error) {
 	ctx := context.Background()
-	client, err := newGitHubClient(ctx, g.Endpoint, g.Token)
+	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +96,7 @@ func (g *Config) CreateStatus(status *Status, org, repo, ref string) error {
 	}
 
 	ctx := context.Background()
-	client, err := newGitHubClient(ctx, g.Endpoint, g.Token)
+	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
 	if err != nil {
 		return err
 	}
@@ -109,7 +114,7 @@ func (g *Config) CreateStatus(status *Status, org, repo, ref string) error {
 func (g *Config) ListStatuses(org, repo, ref string) (error, []*github.RepoStatus) {
 
 	ctx := context.Background()
-	client, err := newGitHubClient(ctx, g.Endpoint, g.Token)
+	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
 	if err != nil {
 		return err, nil
 	}
@@ -128,7 +133,7 @@ func (g *Config) ListStatuses(org, repo, ref string) (error, []*github.RepoStatu
 func (g *Config) GetPullRequest(org, repo, ref, sha string) (*github.PullRequest, error) {
 
 	ctx := context.Background()
-	client, err := newGitHubClient(ctx, g.Endpoint, g.Token)
+	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
 	if err != nil {
 		return nil, err
 	}
@@ -168,5 +173,17 @@ func (g *Config) GetEndpoint() string {
 }
 
 func (g *Config) GetToken() string {
+	// With GitHub App auth, callers need a valid installation token.
+	if g.App.AppID != 0 && g.App.InstallationID != 0 {
+		ts, err := newAppTokenSource(g.App, g.Endpoint)
+		if err != nil {
+			return ""
+		}
+		tok, err := ts.Token()
+		if err != nil {
+			return ""
+		}
+		return tok.AccessToken
+	}
 	return g.Token
 }

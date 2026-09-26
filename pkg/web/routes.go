@@ -246,7 +246,7 @@ func (wa *WebAPI) githubWebhookHandler(w http.ResponseWriter, r *http.Request) {
 	p.Ref = strings.Replace(p.Ref, "refs/heads/", "", 1)
 
 	// TODO: we're assigning config in two places here, we should refactor this
-	gh := github.Config{Endpoint: settings.GithubEndpoint, Token: settings.GitHubToken}
+	gh := github.Config{Endpoint: settings.GithubEndpoint, Token: settings.GitHubToken, App: settings.GitHubApp}
 	p.Config = gh
 	p.DeckBaseURL = settings.Deck.BaseURL
 	fileService := github.FileService{GitHub: &gh, Logger: dinghyLog}

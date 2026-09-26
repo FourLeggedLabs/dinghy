@@ -1,5 +1,3 @@
-[![Coverage Status](https://coveralls.io/repos/github/armory/dinghy/badge.svg?branch=testcover)](https://coveralls.io/github/armory/dinghy?branch=testcover)
-
 # dinghy
 
 Dinghy allows you to create and maintain Spinnaker pipeline templates in source
