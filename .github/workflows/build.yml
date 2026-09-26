@@ -16,18 +16,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v7
         with:
-          go-version: '1.27'
-
-      - name: Cache Build Dependencies  # Speeds up subsquent builds
-        uses: actions/cache@v6
-        with:
-          path: ~/go/pkg/mod
-          key: go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            go-
-
-      - name: Vet
-        run: go vet ./...
+          go-version-file: go.mod
 
       - name: Build
         run: go build -v .
