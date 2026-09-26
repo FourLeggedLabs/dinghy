@@ -1,10 +1,10 @@
 package local
 
 import (
-	"github.com/armory/dinghy/pkg/debug"
-	"github.com/armory/dinghy/pkg/settings/global"
-	"github.com/armory/dinghy/pkg/settings/source"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/debug"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/armory/plank/v4"
 	logr "github.com/sirupsen/logrus"
 	"net/http"

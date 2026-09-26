@@ -18,8 +18,8 @@ package gitlab
 
 import (
 	"fmt"
-	"github.com/armory/dinghy/pkg/cache/local"
-	"github.com/armory/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
 	gitlab "github.com/xanzy/go-gitlab"
 	"regexp"
 	"strings"

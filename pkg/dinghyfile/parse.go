@@ -25,15 +25,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/armory/dinghy/pkg/dinghyfile/pipebuilder"
-	"github.com/armory/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile/pipebuilder"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
 	"path/filepath"
 	"time"
 
 	"text/template"
 
-	"github.com/armory/dinghy/pkg/events"
-	"github.com/armory/dinghy/pkg/preprocessor"
+	"github.com/fourleggedlabs/dinghy/pkg/events"
+	"github.com/fourleggedlabs/dinghy/pkg/preprocessor"
 	"github.com/go-sprout/sprout"
 )
 

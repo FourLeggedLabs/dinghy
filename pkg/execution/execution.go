@@ -14,7 +14,7 @@
 package execution
 
 import (
-	"github.com/armory/dinghy/pkg/database"
+	"github.com/fourleggedlabs/dinghy/pkg/database"
 	"time"
 )
 

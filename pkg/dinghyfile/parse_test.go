@@ -18,14 +18,14 @@ package dinghyfile
 
 import (
 	"errors"
-	"github.com/armory/dinghy/pkg/dinghyfile/pipebuilder"
+	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile/pipebuilder"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"encoding/json"
 
-	"github.com/armory/dinghy/pkg/git/dummy"
+	"github.com/fourleggedlabs/dinghy/pkg/git/dummy"
 	"github.com/armory/plank/v4"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

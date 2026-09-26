@@ -17,7 +17,7 @@
 package github
 
 import (
-	"github.com/armory/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"strings"
 )
 

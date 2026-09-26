@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/armory/dinghy/cmd"
-	"github.com/armory/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/cmd"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/armory/dinghy/pkg/dinghyfile"
+	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"

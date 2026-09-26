@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
 )

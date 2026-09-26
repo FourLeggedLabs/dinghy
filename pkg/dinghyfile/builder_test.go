@@ -19,10 +19,10 @@ package dinghyfile
 import (
 	"bytes"
 	"errors"
-	"github.com/armory/dinghy/pkg/dinghyfile/pipebuilder"
-	"github.com/armory/dinghy/pkg/events"
-	"github.com/armory/dinghy/pkg/log"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile/pipebuilder"
+	"github.com/fourleggedlabs/dinghy/pkg/events"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"reflect"
 	"testing"
 
@@ -32,8 +32,8 @@ import (
 
 	"github.com/armory/plank/v4"
 
-	"github.com/armory/dinghy/pkg/mock"
-	"github.com/armory/dinghy/pkg/notifiers"
+	"github.com/fourleggedlabs/dinghy/pkg/mock"
+	"github.com/fourleggedlabs/dinghy/pkg/notifiers"
 )
 
 // Test the high-level runthrough of ProcessDinghyfile

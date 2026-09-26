@@ -8,8 +8,8 @@ import (
 	http "net/http"
 	reflect "reflect"
 
-	global "github.com/armory/dinghy/pkg/settings/global"
-	util "github.com/armory/dinghy/pkg/util"
+	global "github.com/fourleggedlabs/dinghy/pkg/settings/global"
+	util "github.com/fourleggedlabs/dinghy/pkg/util"
 	gomock "github.com/golang/mock/gomock"
 	logrus "github.com/sirupsen/logrus"
 )

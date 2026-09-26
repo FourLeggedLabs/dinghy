@@ -17,8 +17,8 @@
 package gitlab
 
 import (
-	"github.com/armory/dinghy/pkg/log"
-	"github.com/armory/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	gitlab "github.com/xanzy/go-gitlab"
 	"strings"
 )

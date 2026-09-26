@@ -21,15 +21,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/armory/dinghy/pkg/dinghyfile/pipebuilder"
-	"github.com/armory/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile/pipebuilder"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"path/filepath"
 	"regexp"
 	"time"
 
-	"github.com/armory/dinghy/pkg/events"
-	"github.com/armory/dinghy/pkg/notifiers"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/events"
+	"github.com/fourleggedlabs/dinghy/pkg/notifiers"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/armory/plank/v4"
 )
 

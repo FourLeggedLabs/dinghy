@@ -1,9 +1,9 @@
 package local
 
 import (
-	"github.com/armory/dinghy/pkg/settings/global"
-	"github.com/armory/dinghy/pkg/settings/source"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	log "github.com/sirupsen/logrus"
 	logr "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

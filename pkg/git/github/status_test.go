@@ -25,8 +25,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/armory/dinghy/pkg/git"
-	"github.com/armory/dinghy/pkg/mock"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/mock"
 )
 
 func TestSetCommitStatusSuccessfully(t *testing.T) {

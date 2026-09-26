@@ -19,7 +19,7 @@ package global
 
 import (
 	"fmt"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/armory/go-yaml-tools/pkg/secrets"
 	"github.com/armory/go-yaml-tools/pkg/tls/client"
 	"github.com/armory/go-yaml-tools/pkg/tls/server"

@@ -18,8 +18,8 @@ package web
 
 import (
 	"fmt"
-	dinghylog "github.com/armory/dinghy/pkg/log"
-	"github.com/armory/dinghy/pkg/logevents"
+	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/logevents"
 )
 
 func saveLogEventError(logeventClient logevents.LogEventsClient, p Push, dinghyLog dinghylog.DinghyLog, logEvent logevents.LogEvent) {

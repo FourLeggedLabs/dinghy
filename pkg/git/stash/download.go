@@ -19,13 +19,13 @@ package stash
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/armory/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/armory/dinghy/pkg/cache/local"
+	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
 )
 
 // FileService is for working with repositories

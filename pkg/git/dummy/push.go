@@ -18,7 +18,7 @@ package dummy
 
 import (
 	"errors"
-	"github.com/armory/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
 )
 
 // Push contains data about a push full of commits

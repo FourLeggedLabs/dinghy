@@ -17,9 +17,9 @@
 package main
 
 import (
-	dinghy "github.com/armory/dinghy/cmd"
-	"github.com/armory/dinghy/pkg/settings"
-	"github.com/armory/dinghy/pkg/settings/global"
+	dinghy "github.com/fourleggedlabs/dinghy/cmd"
+	"github.com/fourleggedlabs/dinghy/pkg/settings"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	logr "github.com/sirupsen/logrus"
 )
 

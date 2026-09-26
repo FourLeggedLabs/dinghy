@@ -23,8 +23,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/armory/dinghy/pkg/settings"
-	"github.com/armory/dinghy/pkg/spinnaker"
+	"github.com/fourleggedlabs/dinghy/pkg/settings"
+	"github.com/fourleggedlabs/dinghy/pkg/spinnaker"
 	log "github.com/sirupsen/logrus"
 )
 

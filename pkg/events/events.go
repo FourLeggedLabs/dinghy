@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/armory/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"net/http"
 
 	cleanhttp "github.com/hashicorp/go-cleanhttp"

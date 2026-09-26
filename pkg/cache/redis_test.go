@@ -24,7 +24,7 @@ import (
 
 	"fmt"
 
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
 )

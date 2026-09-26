@@ -2,8 +2,8 @@ package settings
 
 import (
 	"flag"
-	"github.com/armory/dinghy/pkg/settings/source/local"
-	"github.com/armory/dinghy/pkg/settings/source/remote"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source/local"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source/remote"
 	logr "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"

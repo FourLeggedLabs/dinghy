@@ -17,7 +17,7 @@
 package integration
 
 import (
-	"github.com/armory/dinghy/pkg/git/dummy"
+	"github.com/fourleggedlabs/dinghy/pkg/git/dummy"
 )
 
 const dinghyfileNew = `{

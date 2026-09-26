@@ -4,7 +4,7 @@ import (
 	"dario.cat/mergo"
 	"encoding/json"
 	"errors"
-	"github.com/armory/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/armory/go-yaml-tools/pkg/spring"
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"

@@ -19,10 +19,10 @@ package github
 import (
 	"bytes"
 	"errors"
-	"github.com/armory/dinghy/pkg/cache/local"
-	_ "github.com/armory/dinghy/pkg/dinghyfile"
-	"github.com/armory/dinghy/pkg/log"
-	"github.com/armory/dinghy/pkg/mock"
+	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
+	_ "github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/mock"
 	"github.com/golang/mock/gomock"
 	"testing"
 

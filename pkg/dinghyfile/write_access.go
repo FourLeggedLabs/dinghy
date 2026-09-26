@@ -18,7 +18,7 @@ package dinghyfile
 
 import (
 	"errors"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/armory/plank/v4"
 	log "github.com/sirupsen/logrus"
 )

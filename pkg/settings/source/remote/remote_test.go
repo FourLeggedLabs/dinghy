@@ -1,7 +1,7 @@
 package remote
 
 import (
-	"github.com/armory/dinghy/pkg/settings/source"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
 	logr "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"

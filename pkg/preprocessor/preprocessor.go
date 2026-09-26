@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/armory/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
 	"github.com/go-sprout/sprout"
 	"strconv"
 	"strings"

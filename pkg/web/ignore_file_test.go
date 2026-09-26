@@ -1,8 +1,8 @@
 package web
 
 import (
-	dinghylog "github.com/armory/dinghy/pkg/log"
-	"github.com/armory/dinghy/pkg/mock"
+	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"

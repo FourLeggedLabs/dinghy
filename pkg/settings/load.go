@@ -19,9 +19,9 @@ package settings
 
 import (
 	"flag"
-	"github.com/armory/dinghy/pkg/settings/source"
-	"github.com/armory/dinghy/pkg/settings/source/local"
-	"github.com/armory/dinghy/pkg/settings/source/remote"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source/local"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source/remote"
 	log "github.com/sirupsen/logrus"
 )
 

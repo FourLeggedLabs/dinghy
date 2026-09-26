@@ -20,13 +20,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/armory/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/armory/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
 )
 
 // -----------------------------------------------------------------------------

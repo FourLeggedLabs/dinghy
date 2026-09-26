@@ -18,12 +18,12 @@ package bbcloud
 
 import (
 	"fmt"
-	"github.com/armory/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 
-	"github.com/armory/dinghy/pkg/cache/local"
+	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
 )
 
 // FileService is for working with repositories

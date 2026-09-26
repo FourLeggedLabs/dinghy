@@ -18,7 +18,7 @@ package gitlab
 
 import (
 	"errors"
-	"github.com/armory/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
 )
 
 // SetCommitStatus sets the commit status

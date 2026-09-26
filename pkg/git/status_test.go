@@ -19,7 +19,7 @@ package git
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
-	// "github.com/armory/dinghy/pkg/settings"
+	// "github.com/fourleggedlabs/dinghy/pkg/settings"
 )
 
 func TestTrue(t *testing.T) {

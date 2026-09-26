@@ -1,4 +1,4 @@
-module github.com/armory/dinghy
+module github.com/fourleggedlabs/dinghy
 
 require (
 	dario.cat/mergo v1.0.0

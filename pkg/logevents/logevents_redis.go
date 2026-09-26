@@ -15,7 +15,7 @@ package logevents
 
 import (
 	"encoding/json"
-	"github.com/armory/dinghy/pkg/cache"
+	"github.com/fourleggedlabs/dinghy/pkg/cache"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"

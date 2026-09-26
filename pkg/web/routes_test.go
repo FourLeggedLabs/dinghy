@@ -19,13 +19,13 @@ package web
 import (
 	"bytes"
 	"errors"
-	"github.com/armory/dinghy/pkg/dinghyfile"
-	"github.com/armory/dinghy/pkg/git/github"
-	dinghylog "github.com/armory/dinghy/pkg/log"
-	"github.com/armory/dinghy/pkg/logevents"
-	"github.com/armory/dinghy/pkg/settings/global"
-	"github.com/armory/dinghy/pkg/settings/source"
-	"github.com/armory/dinghy/pkg/util"
+	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
+	"github.com/fourleggedlabs/dinghy/pkg/git/github"
+	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
+	"github.com/fourleggedlabs/dinghy/pkg/logevents"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/sirupsen/logrus"
 
 	// "errors"
@@ -34,9 +34,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/armory/dinghy/pkg/mock"
+	"github.com/fourleggedlabs/dinghy/pkg/mock"
 
-	// "github.com/armory/dinghy/pkg/settings"
+	// "github.com/fourleggedlabs/dinghy/pkg/settings"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

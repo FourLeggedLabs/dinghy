@@ -17,7 +17,7 @@
 package github
 
 import (
-	"github.com/armory/dinghy/pkg/git"
+	"github.com/fourleggedlabs/dinghy/pkg/git"
 )
 
 /* Example: POST /repos/:owner/:repo/statuses/:sha
