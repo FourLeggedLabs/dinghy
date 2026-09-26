@@ -18,14 +18,17 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile/pipebuilder"
 	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
 	"github.com/fourleggedlabs/dinghy/pkg/logevents"
+	"github.com/fourleggedlabs/dinghy/pkg/otel"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
+	"go.opentelemetry.io/otel/attribute"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -258,7 +261,7 @@ func (wa *WebAPI) githubWebhookHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	wa.buildPipelines(&p, body, &fileService, w, dinghyLog, pullRequestUrl, plankClient, settings)
+	wa.buildPipelines(r.Context(), &p, body, &fileService, w, dinghyLog, pullRequestUrl, plankClient, settings)
 }
 
 func contains(whvalidations []string, provider string) bool {
@@ -374,7 +377,7 @@ func (wa *WebAPI) gitlabWebhookHandler(w http.ResponseWriter, r *http.Request) {
 		saveLogEventError(wa.LogEventsClient, &p, dinghyLog, logevents.LogEvent{RawData: string(body)})
 		return
 	}
-	wa.buildPipelines(&p, body, fileService, w, dinghyLog, "", plankClient, settings)
+	wa.buildPipelines(r.Context(), &p, body, fileService, w, dinghyLog, "", plankClient, settings)
 }
 
 func (wa *WebAPI) stashWebhookHandler(w http.ResponseWriter, r *http.Request) {
@@ -427,7 +430,7 @@ func (wa *WebAPI) stashWebhookHandler(w http.ResponseWriter, r *http.Request) {
 		Logger: dinghyLog,
 	}
 	dinghyLog.Infof("Building pipeslines from Stash webhook")
-	wa.buildPipelines(p, body, &fileService, w, dinghyLog, "", plankClient, settings)
+	wa.buildPipelines(r.Context(), p, body, &fileService, w, dinghyLog, "", plankClient, settings)
 }
 
 func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request) {
@@ -504,7 +507,7 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 			Logger: dinghyLog,
 		}
 
-		wa.buildPipelines(p, body, &fileService, w, dinghyLog, "", plankClient, settings)
+		wa.buildPipelines(r.Context(), p, body, &fileService, w, dinghyLog, "", plankClient, settings)
 
 	case "repo:refs_changed", "pr:merged":
 		dinghyLog.Info("Processing bitbucket-server webhook")
@@ -551,7 +554,7 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 			Logger: dinghyLog,
 		}
 
-		wa.buildPipelines(p, body, &fileService, w, dinghyLog, "", plankClient, settings)
+		wa.buildPipelines(r.Context(), p, body, &fileService, w, dinghyLog, "", plankClient, settings)
 
 	default:
 		util.WriteHTTPError(w, http.StatusInternalServerError, errors.New("Unknown bitbucket event type"))
@@ -610,6 +613,7 @@ type UserWriteAccessValidation struct {
 // TODO: this func should return an error and allow the handlers to return the http response. Additionally,
 // it probably doesn't belong in this file once refactored.
 func (wa *WebAPI) buildPipelines(
+	ctx context.Context,
 	p Push,
 	rawPushBytes []byte,
 	d dinghyfile.Downloader,
@@ -620,6 +624,15 @@ func (wa *WebAPI) buildPipelines(
 	s *global.Settings,
 ) {
 	l.Infof("Processing request for branch: %s", p.Branch())
+
+	ctx, span := otel.StartSpan(ctx, "buildPipelines")
+	defer span.End()
+	span.SetAttributes(
+		attribute.String("dinghy.provider", p.Name()),
+		attribute.String("dinghy.org", p.Org()),
+		attribute.String("dinghy.repo", p.Repo()),
+		attribute.String("dinghy.branch", p.Branch()),
+	)
 
 	// deserialize push data to a map.  used in template logic later
 	rawPush := make(map[string]interface{})
@@ -669,6 +682,7 @@ func (wa *WebAPI) buildPipelines(
 	renderedDinghyfile, err := wa.ProcessPush(p, builder, s)
 
 	if err == dinghyfile.ErrMalformedJSON {
+		otel.RecordError(span, err)
 		util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
 		l.Errorf("ProcessPush Failed (malformed JSON): %s", err.Error())
 		saveLogEventError(wa.LogEventsClient, p, l, logevents.LogEvent{
@@ -680,6 +694,7 @@ func (wa *WebAPI) buildPipelines(
 	}
 
 	if err != nil {
+		otel.RecordError(span, err)
 		l.Errorf("ProcessPush Failed (other): %s", err.Error())
 		util.WriteHTTPError(w, http.StatusInternalServerError, err)
 		saveLogEventError(wa.LogEventsClient, p, l, logevents.LogEvent{

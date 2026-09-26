@@ -18,6 +18,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
 	"github.com/fourleggedlabs/dinghy/pkg/git/github"
@@ -712,7 +713,7 @@ func TestBuildPipelinesWhenDinghyIgnoreRegexp2Enabled(t *testing.T) {
 	d := dinghyfile.NewMockDownloader(c)
 	d.EXPECT().Download("test_org", "test_repo", ".dinghyignore", "test_branch").Return("file.(js|css|html)", nil)
 
-	wa.buildPipelines(&p, []byte("{}"), d, r, dl, "", nil, s)
+	wa.buildPipelines(context.Background(), &p, []byte("{}"), d, r, dl, "", nil, s)
 
 	assert.Equal(t, http.StatusOK, r.Code)
 	assert.Equal(t, `{"status":"accepted"}`, r.Body.String())
@@ -769,7 +770,7 @@ func TestBuildPipelinesWhenDinghyIgnoreRegexp2Disabled(t *testing.T) {
 	d := dinghyfile.NewMockDownloader(c)
 	d.EXPECT().Download("test_org", "test_repo", ".dinghyignore", "test_branch").Return("file.(js|css|html)", nil)
 
-	wa.buildPipelines(&p, []byte("{}"), d, r, dl, "", nil, s)
+	wa.buildPipelines(context.Background(), &p, []byte("{}"), d, r, dl, "", nil, s)
 
 	assert.Equal(t, http.StatusOK, r.Code)
 	assert.Equal(t, `{"status":"accepted"}`, r.Body.String())

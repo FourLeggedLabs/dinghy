@@ -40,6 +40,7 @@ import (
 	"github.com/armory/plank/v4"
 
 	"github.com/fourleggedlabs/dinghy/pkg/cache"
+	"github.com/fourleggedlabs/dinghy/pkg/otel"
 	"github.com/fourleggedlabs/dinghy/pkg/events"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/fourleggedlabs/dinghy/pkg/web"
@@ -233,8 +234,17 @@ func AddUnmarshaller(u dinghyfile.DinghyJsonUnmarshaller, api *web.WebAPI) {
 }
 
 func Start(log *logr.Logger, api *web.WebAPI, settings2 *global.Settings) {
+	ctx := context.Background()
+	shutdownOtel, err := otel.InitTracer(ctx, otel.ConfigFromEnv())
+	if err != nil {
+		log.Warnf("failed to initialize OpenTelemetry: %v (continuing without tracing)", err)
+	} else {
+		defer func() { _ = shutdownOtel(ctx) }()
+		log.Infof("OpenTelemetry tracing enabled (endpoint=%s)", os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+	}
+
 	log.Infof("Dinghy starting on %s", settings2.Server.GetAddr())
-	if err := server.NewServer(&settings2.Server).Start(api.MuxRouter); err != nil {
+	if err := server.NewServer(&settings2.Server).Start(otel.Handler(api.MuxRouter)); err != nil {
 		log.Fatal(err)
 	}
 }
