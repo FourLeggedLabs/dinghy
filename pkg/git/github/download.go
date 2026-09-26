@@ -22,7 +22,7 @@ import (
 	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
 	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v74/github"
 	"net/http"
 	"regexp"
 	"strings"
@@ -30,7 +30,7 @@ import (
 
 // FileService is for working with repositories
 type FileService struct {
-	cache  local.Cache
+	cache  *local.Cache
 	GitHub GitHubClient
 	Logger log.DinghyLog
 }
@@ -62,6 +62,9 @@ func (f *FileService) Download(org, repo, path, branch string) (string, error) {
 }
 
 func (f *FileService) DownloadFile(org, repo, path, branch string) (string, error) {
+	if f.cache == nil {
+		f.cache = &local.Cache{}
+	}
 	// The endpoint used by Github does not
 	// accept branch names such as refs/heads/master, but only the name of the branch.
 	// Need to strip that if it exists. Can't use split here either, because '/' is allowed

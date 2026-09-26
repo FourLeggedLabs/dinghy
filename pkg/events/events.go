@@ -84,7 +84,7 @@ func (c *Client) SendEvent(eventType string, event *Event) {
 	}
 
 	if err := c.postEvent(payload); err != nil {
-		log.Errorf(err.Error())
+		log.Errorf("%s", err.Error())
 		return
 	}
 }

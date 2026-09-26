@@ -9,7 +9,7 @@ require (
 	//replaces sprig which is no longer supported
 	github.com/go-sprout/sprout v0.4.1
 	github.com/golang/mock v1.6.0
-	github.com/google/go-github/v33 v33.0.0
+	github.com/google/go-github/v74 v74.0.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -106,4 +106,4 @@ replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110
 
 //replace github.com/armory/plank/v4 v4.1.0 => ../plank
 
-go 1.21
+go 1.25

@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v74/github"
 	"golang.org/x/oauth2"
 )
 
@@ -133,7 +133,7 @@ func (g *Config) GetPullRequest(org, repo, ref, sha string) (*github.PullRequest
 		return nil, err
 	}
 
-	pullRequests, _, err := client.PullRequests.ListPullRequestsWithCommit(ctx, org, repo, sha, &github.PullRequestListOptions{Base: ref})
+	pullRequests, _, err := client.PullRequests.ListPullRequestsWithCommit(ctx, org, repo, sha, &github.ListOptions{})
 
 	if err != nil {
 		return nil, err

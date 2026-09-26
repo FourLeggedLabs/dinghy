@@ -114,9 +114,9 @@ func TestUpdateApplication(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{true, true}}
+	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 	deletedPipeline := plank.Pipeline{Name: "DeletedPipeline", ID: "DeletedID", Application: "testapp"}
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{true, true}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 
 	existing := []plank.Pipeline{existingPipeline, deletedPipeline}
 	newPipelines := []plank.Pipeline{existingPipeline, newPipeline}
@@ -928,9 +928,9 @@ func TestUpdatePipelinesDeleteStaleWithExisting(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{true, true}}
+	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 	deletedPipeline := plank.Pipeline{Name: "DeletedPipeline", ID: "DeletedID", Application: "testapp"}
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{true, true}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 
 	existing := []plank.Pipeline{existingPipeline, deletedPipeline}
 	newPipelines := []plank.Pipeline{existingPipeline, newPipeline}
@@ -964,9 +964,9 @@ func TestUpdatePipelinesNoDeleteStaleWithExisting(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{true, true}}
+	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 	deletedPipeline := plank.Pipeline{Name: "DeletedPipeline", ID: "DeletedID", Application: "testapp"}
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{true, true}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 
 	existing := []plank.Pipeline{existingPipeline, deletedPipeline}
 	newPipelines := []plank.Pipeline{existingPipeline, newPipeline}
@@ -998,9 +998,9 @@ func TestUpdatePipelinesDeleteStaleWithFailure(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{true, true}}
+	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 	deletedPipeline := plank.Pipeline{Name: "DeletedPipeline", ID: "DeletedID", Application: "testapp"}
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{true, true}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 
 	existing := []plank.Pipeline{existingPipeline, deletedPipeline}
 	newPipelines := []plank.Pipeline{existingPipeline, newPipeline}
@@ -1034,9 +1034,9 @@ func TestUpdatePipelinesUpsertFail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{true, true}}
+	existingPipeline := plank.Pipeline{Name: "ExistingPipeline", ID: "ExistingID", Application: "testapp", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 	deletedPipeline := plank.Pipeline{Name: "DeletedPipeline", ID: "DeletedID", Application: "testapp"}
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{true, true}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: true, AllowUnlockUI: true}}
 
 	existing := []plank.Pipeline{existingPipeline, deletedPipeline}
 	newPipelines := []plank.Pipeline{existingPipeline, newPipeline}
@@ -1070,11 +1070,11 @@ func TestUpdatePipelinesRespectsAutoLockOn(t *testing.T) {
 	defer ctrl.Finish()
 
 	// New pipeline from file has locks "false"
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{false, false}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: false, AllowUnlockUI: false}}
 	expectedPipeline := plank.Pipeline{}
 	copier.Copy(&expectedPipeline, &newPipeline)
 	// Expect to upsert with locks "true"
-	expectedPipeline.Locked = &plank.PipelineLockType{true, true}
+	expectedPipeline.Locked = &plank.PipelineLockType{UI: true, AllowUnlockUI: true}
 
 	testapp := &plank.Application{Name: "testapp"}
 
@@ -1101,11 +1101,11 @@ func TestUpdatePipelinesRespectsAutoLockOff(t *testing.T) {
 	defer ctrl.Finish()
 
 	// New pipeline from file has locks "false"
-	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{false, false}}
+	newPipeline := plank.Pipeline{Name: "NewPipeline", ID: "NewID", Locked: &plank.PipelineLockType{UI: false, AllowUnlockUI: false}}
 	expectedPipeline := plank.Pipeline{}
 	copier.Copy(&expectedPipeline, &newPipeline)
 	// Expect to upsert with locks "true"
-	expectedPipeline.Locked = &plank.PipelineLockType{false, false}
+	expectedPipeline.Locked = &plank.PipelineLockType{UI: false, AllowUnlockUI: false}
 
 	testapp := &plank.Application{Name: "testapp"}
 

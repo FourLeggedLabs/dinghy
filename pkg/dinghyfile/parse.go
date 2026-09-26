@@ -218,8 +218,11 @@ func (r *DinghyfileParser) Parse(org, repo, path, branch string, vars []VarMap) 
 	}
 
 	gitInfo := git.GitInfo{
-		r.Builder.PushRaw,
-		org, repo, path, branch,
+		RawData: r.Builder.PushRaw,
+		Org:     org,
+		Repo:    repo,
+		Path:    path,
+		Branch:  branch,
 	}
 
 	deps := make(map[string]bool)

@@ -243,7 +243,7 @@ func stringToSlice(args ...interface{}) []interface{} {
 
 func TestFileService_DownloadContents(t *testing.T) {
 	type fields struct {
-		cache  local.Cache
+		cache  *local.Cache
 		GitHub GitHubClient
 		Logger log.DinghyLog
 	}

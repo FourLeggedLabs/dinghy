@@ -89,7 +89,7 @@ func Setup(sourceConfiguration source.SourceConfiguration, log *logr.Logger) (*l
 	}
 	logLevel, err := logr.ParseLevel(logLevelStr)
 	if err != nil {
-		log.Fatalf("Invalid log level: " + logLevelStr)
+		log.Fatalf("Invalid log level: %s", logLevelStr)
 	}
 	log.SetLevel(logLevel)
 	if config.Logging.Remote.Enabled {

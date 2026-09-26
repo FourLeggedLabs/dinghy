@@ -141,20 +141,20 @@ func TestNewPushIncludesDinghyfileRenamed(t *testing.T) {
 	webhookPayload := WebhookPayload{}
 	payloadString := fmt.Sprintf(webhookPayloadOneChange, "master", "master")
 	if err := json.NewDecoder(bytes.NewBufferString(payloadString)).Decode(&webhookPayload); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	diffStatResponse := fmt.Sprintf(diffstatResponseOneFile, "dinghyfile_bkp", "dinghyfile", 1, 1)
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if _, err := res.Write([]byte(diffStatResponse)); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 	}))
 	defer func() { testServer.Close() }()
 
 	push, err := NewPush(webhookPayload, Config{Endpoint: testServer.URL, Logger: dinghyfile.NewDinghylog()})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	assert.Equal(t, 1, len(push.ChangedFiles))
@@ -164,20 +164,20 @@ func TestNewPushIncludesDinghyfileRenamed(t *testing.T) {
 func TestNewPushTwoCommitsToSameFile(t *testing.T) {
 	webhookPayload := WebhookPayload{}
 	if err := json.NewDecoder(bytes.NewBufferString(webhookPayloadTwoChanges)).Decode(&webhookPayload); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	diffStatResponse := fmt.Sprintf(diffstatResponseOneFile, "dinghyfile", "dinghyfile", 1, 1)
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if _, err := res.Write([]byte(diffStatResponse)); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 	}))
 	defer func() { testServer.Close() }()
 
 	push, err := NewPush(webhookPayload, Config{Endpoint: testServer.URL, Logger: dinghyfile.NewDinghylog()})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	assert.Equal(t, 1, len(push.ChangedFiles))
@@ -188,19 +188,19 @@ func TestNewPushIncludesMultipleChangedFiles(t *testing.T) {
 	webhookPayload := WebhookPayload{}
 	payloadString := fmt.Sprintf(webhookPayloadOneChange, "master", "master")
 	if err := json.NewDecoder(bytes.NewBufferString(payloadString)).Decode(&webhookPayload); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if _, err := res.Write([]byte(diffstatResponseTwoFiles)); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 	}))
 	defer func() { testServer.Close() }()
 
 	push, err := NewPush(webhookPayload, Config{Endpoint: testServer.URL, Logger: dinghyfile.NewDinghylog()})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	assert.Equal(t, 2, len(push.ChangedFiles))
@@ -212,7 +212,7 @@ func TestNewPushWithPagination(t *testing.T) {
 	webhookPayload := WebhookPayload{}
 	payloadString := fmt.Sprintf(webhookPayloadOneChange, "master", "master")
 	if err := json.NewDecoder(bytes.NewBufferString(payloadString)).Decode(&webhookPayload); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	diffStatResponses := []string{
 		fmt.Sprintf(diffstatResponseOneFile, "dinghyfile", "dinghyfile", 1, 2),
@@ -222,7 +222,7 @@ func TestNewPushWithPagination(t *testing.T) {
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if _, err := res.Write([]byte(diffStatResponses[diffStatResponseIndex])); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 		diffStatResponseIndex++
 	}))
@@ -230,7 +230,7 @@ func TestNewPushWithPagination(t *testing.T) {
 
 	push, err := NewPush(webhookPayload, Config{Endpoint: testServer.URL, Logger: dinghyfile.NewDinghylog()})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	assert.Equal(t, 2, len(push.ChangedFiles))
@@ -242,20 +242,20 @@ func TestNewPushFromFeatureBranchToMaster(t *testing.T) {
 	webhookPayload := WebhookPayload{}
 	payloadString := fmt.Sprintf(webhookPayloadOneChange, "feature/awesome", "master")
 	if err := json.NewDecoder(bytes.NewBufferString(payloadString)).Decode(&webhookPayload); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	diffStatResponse := fmt.Sprintf(diffstatResponseOneFile, "dinghyfile_bkp", "dinghyfile", 1, 1)
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if _, err := res.Write([]byte(diffStatResponse)); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 	}))
 	defer func() { testServer.Close() }()
 
 	push, err := NewPush(webhookPayload, Config{Endpoint: testServer.URL, Logger: dinghyfile.NewDinghylog()})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	assert.Equal(t, 1, len(push.ChangedFiles))
@@ -299,20 +299,20 @@ func TestIsBranch(t *testing.T) {
 			webhookPayload := WebhookPayload{}
 			payloadString := fmt.Sprintf(webhookPayloadOneChange, tc.webhookBranchName, tc.webhookBranchName)
 			if err := json.NewDecoder(bytes.NewBufferString(payloadString)).Decode(&webhookPayload); err != nil {
-				t.Fatalf(err.Error())
+				t.Fatalf("%s", err.Error())
 			}
 			diffStatResponse := fmt.Sprintf(diffstatResponseOneFile, "dinghyfile_bkp", "dinghyfile", 1, 1)
 
 			testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 				if _, err := res.Write([]byte(diffStatResponse)); err != nil {
-					t.Fatalf(err.Error())
+					t.Fatalf("%s", err.Error())
 				}
 			}))
 			defer func() { testServer.Close() }()
 
 			push, err := NewPush(webhookPayload, Config{Endpoint: testServer.URL, Logger: dinghyfile.NewDinghylog()})
 			if err != nil {
-				t.Fatalf(err.Error())
+				t.Fatalf("%s", err.Error())
 			}
 
 			actual := push.IsBranch(tc.configBranchName)
@@ -357,7 +357,7 @@ func TestIsMaster(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			webhookPayload := WebhookPayload{}
 			if err := json.NewDecoder(bytes.NewBufferString(tc.payload)).Decode(&webhookPayload); err != nil {
-				t.Fatalf(err.Error())
+				t.Fatalf("%s", err.Error())
 			}
 
 			p := &Push{Payload: webhookPayload}

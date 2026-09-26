@@ -362,6 +362,7 @@ func (wa *WebAPI) gitlabWebhookHandler(w http.ResponseWriter, r *http.Request) {
 	dinghyLog.Infof("Received payload: %s", string(body))
 
 	fileService, err := p.ParseWebhook(settings, body)
+
 	if err != nil {
 		if strings.Contains(err.Error(), "unexpected event type") {
 			dinghyLog.Infof("Non-Push gitlab notification (%s)", strings.SplitN(err.Error(), ":", 2))
@@ -373,7 +374,7 @@ func (wa *WebAPI) gitlabWebhookHandler(w http.ResponseWriter, r *http.Request) {
 		saveLogEventError(wa.LogEventsClient, &p, dinghyLog, logevents.LogEvent{RawData: string(body)})
 		return
 	}
-	wa.buildPipelines(&p, body, &fileService, w, dinghyLog, "", plankClient, settings)
+	wa.buildPipelines(&p, body, fileService, w, dinghyLog, "", plankClient, settings)
 }
 
 func (wa *WebAPI) stashWebhookHandler(w http.ResponseWriter, r *http.Request) {

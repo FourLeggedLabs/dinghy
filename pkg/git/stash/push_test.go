@@ -60,7 +60,7 @@ func TestIsBranch(t *testing.T) {
 			payload := fmt.Sprintf(`{"changes": [{"refId": "%s"}]}`, tc.webhookBranchName)
 			webhookPayload := WebhookPayload{}
 			if err := json.NewDecoder(bytes.NewBufferString(payload)).Decode(&webhookPayload); err != nil {
-				t.Fatalf(err.Error())
+				t.Fatalf("%s", err.Error())
 			}
 
 			p := &Push{Payload: webhookPayload}
@@ -108,7 +108,7 @@ func TestIsMaster(t *testing.T) {
 			payload := fmt.Sprintf(`{"changes": [{"refId": "%s"}]}`, tc.webhookBranchName)
 			webhookPayload := WebhookPayload{}
 			if err := json.NewDecoder(bytes.NewBufferString(payload)).Decode(&webhookPayload); err != nil {
-				t.Fatalf(err.Error())
+				t.Fatalf("%s", err.Error())
 			}
 
 			p := &Push{Payload: webhookPayload}

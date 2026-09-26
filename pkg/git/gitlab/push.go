@@ -106,12 +106,12 @@ func (p *Push) PusherName() string {
 
 // ParseWebhook parses the webhook into the struct and returns a file service
 // instance (and error)
-func (p *Push) ParseWebhook(cfg *global.Settings, body []byte) (FileService, error) {
+func (p *Push) ParseWebhook(cfg *global.Settings, body []byte) (*FileService, error) {
 	client, err := gitlab.NewClient(cfg.GitLabToken, gitlab.WithBaseURL(cfg.GitLabEndpoint))
 	if err != nil {
-		return FileService{}, err
+		return nil, err
 	}
-	fs := FileService{
+	fs := &FileService{
 		Logger: p.Logger,
 		Client: client,
 	}

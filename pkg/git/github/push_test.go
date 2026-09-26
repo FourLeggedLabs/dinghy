@@ -50,7 +50,7 @@ func TestOrg(t *testing.T) {
 	for _, c := range cases {
 		var p Push
 		if err := json.NewDecoder(bytes.NewBufferString(c.payload)).Decode(&p); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 
 		if p.Org() != c.expected {
@@ -87,7 +87,7 @@ func TestIsBranch(t *testing.T) {
 			payload := fmt.Sprintf(`{"repository": {"organization": "org-armory"}, "ref": "%s"}`, tc.webhookBranchName)
 			var p Push
 			if err := json.NewDecoder(bytes.NewBufferString(payload)).Decode(&p); err != nil {
-				t.Fatalf(err.Error())
+				t.Fatalf("%s", err.Error())
 			}
 
 			actual := p.IsBranch(tc.configBranchName)
