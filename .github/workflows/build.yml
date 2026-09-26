@@ -1,15 +1,14 @@
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 name: Build
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1  # Forces sequential execution due to redis dep issues otherwise
-      matrix:
-        go: [ '1.27' ]
-    name: Go ${{ matrix.go }} build
+    name: Build and test
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7
@@ -17,7 +16,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v7
         with:
-          go-version: ${{ matrix.go }}
+          go-version: '1.27'
 
       - name: Cache Build Dependencies  # Speeds up subsquent builds
         uses: actions/cache@v6
