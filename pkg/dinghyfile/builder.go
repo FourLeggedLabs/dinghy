@@ -27,10 +27,10 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/armory/plank/v4"
 	"github.com/fourleggedlabs/dinghy/pkg/events"
 	"github.com/fourleggedlabs/dinghy/pkg/notifiers"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
-	"github.com/armory/plank/v4"
 )
 
 type VarMap map[string]interface{}
@@ -135,7 +135,7 @@ func (b *PipelineBuilder) UpdateDinghyfile(dinghyfile []byte) (Dinghyfile, error
 	d := NewDinghyfile()
 	// try every parser, maybe we'll get lucky
 	parseErrs := 0
-	suceeded := false
+	succeeded := false
 	var parseError error
 	for _, ums := range b.Ums {
 		if err := ums.Unmarshal(dinghyfile, &d); err != nil {
@@ -143,10 +143,10 @@ func (b *PipelineBuilder) UpdateDinghyfile(dinghyfile []byte) (Dinghyfile, error
 			parseErrs++
 			continue
 		} else {
-			suceeded = true
+			succeeded = true
 		}
 	}
-	if !suceeded && parseErrs != 0 && parseError != nil {
+	if !succeeded && parseErrs != 0 && parseError != nil {
 		b.Logger.Warnf("UpdateDinghyfile malformed syntax: %s", parseError.Error())
 	}
 	event := &events.Event{

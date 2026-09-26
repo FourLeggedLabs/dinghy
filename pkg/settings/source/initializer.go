@@ -4,11 +4,10 @@ import (
 	"dario.cat/mergo"
 	"encoding/json"
 	"errors"
-	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/armory/go-yaml-tools/pkg/spring"
+	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -45,7 +44,7 @@ func (i *Initialize) configureSettings(settings global.Settings) (*global.Settin
 	if settings.GitHubToken == "" {
 		// load github api token
 		if _, err := os.Stat(settings.GitHubCredsPath); err == nil {
-			creds, err := ioutil.ReadFile(settings.GitHubCredsPath)
+			creds, err := os.ReadFile(settings.GitHubCredsPath)
 			if err != nil {
 				return nil, err
 			}
@@ -63,7 +62,7 @@ func (i *Initialize) configureSettings(settings global.Settings) (*global.Settin
 	if settings.StashToken == "" || settings.StashUsername == "" {
 		// load stash api creds
 		if _, err := os.Stat(settings.StashCredsPath); err == nil {
-			creds, err := ioutil.ReadFile(settings.StashCredsPath)
+			creds, err := os.ReadFile(settings.StashCredsPath)
 			if err != nil {
 				return nil, err
 			}

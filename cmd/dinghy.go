@@ -76,7 +76,7 @@ func Setup(sourceConfiguration source.SourceConfiguration, log *logr.Logger) (*l
 	}
 
 	if config.Logging.File != "" {
-		f, err := os.OpenFile(config.Logging.File, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0664)
+		f, err := os.OpenFile(config.Logging.File, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0600)
 		if err != nil {
 			log.Fatalf("Couldn't open log file")
 		}
@@ -148,16 +148,16 @@ func Setup(sourceConfiguration source.SourceConfiguration, log *logr.Logger) (*l
 
 		redisClient := cache.NewRedisCache(NewRedisOptions(config.SpinnakerSupplied.Redis), log, ctx, stop, false)
 
-		var migration execution.Execution
-
-		migration = &execution.RedisToSQLMigration{
+		migration := &execution.RedisToSQLMigration{
 			Settings:   config,
 			Logger:     log,
 			RedisCache: redisClient,
 			SQLClient:  sqlClient,
 		}
 
-		migration.Execute()
+		if _, err := migration.Execute(); err != nil {
+			log.Errorf("redis->sql migration execute failed: %v", err)
+		}
 		migration.Finalize()
 
 	} else if config.SQL.Enabled && config.SQL.EventLogsOnly {

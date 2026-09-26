@@ -18,8 +18,8 @@ package dinghyfile
 
 import (
 	"errors"
-	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/armory/plank/v4"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	log "github.com/sirupsen/logrus"
 )
 

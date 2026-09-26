@@ -1,8 +1,8 @@
 package web
 
 import (
-	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
 	"github.com/dlclark/regexp2"
+	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
 	"regexp"
 )
 

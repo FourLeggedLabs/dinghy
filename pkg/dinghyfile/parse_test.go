@@ -25,8 +25,8 @@ import (
 
 	"encoding/json"
 
-	"github.com/fourleggedlabs/dinghy/pkg/git/dummy"
 	"github.com/armory/plank/v4"
+	"github.com/fourleggedlabs/dinghy/pkg/git/dummy"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -793,6 +793,7 @@ func TestModuleVariableSubstitution(t *testing.T) {
 	r := testDinghyfileParser()
 	ts := testStruct{}
 	ret, err := r.Parse("org", "repo", "df2", "master", nil)
+	assert.Nil(t, err)
 	err = json.Unmarshal(ret.Bytes(), &ts)
 	assert.Equal(t, nil, err)
 
@@ -808,7 +809,7 @@ func TestPipelineIDFunc(t *testing.T) {
 	r := testDinghyfileParser()
 
 	client := NewMockPlankClient(ctrl)
-	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{plank.Pipeline{ID: "pipelineID", Name: "trigger Pipeline"}}, nil).Times(1)
+	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{{ID: "pipelineID", Name: "trigger Pipeline"}}, nil).Times(1)
 	r.Builder.Client = client
 
 	vars := []VarMap{
@@ -842,7 +843,7 @@ func TestPipelineIDRender(t *testing.T) {
 	r := testDinghyfileParser()
 
 	client := NewMockPlankClient(ctrl)
-	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{plank.Pipeline{ID: "pipeline ID", Name: "trigger Pipeline"}}, nil).Times(1)
+	client.EXPECT().GetPipelines(gomock.Eq("triggerApp"), "").Return([]plank.Pipeline{{ID: "pipeline ID", Name: "trigger Pipeline"}}, nil).Times(1)
 	r.Builder.Client = client
 
 	expected := `{

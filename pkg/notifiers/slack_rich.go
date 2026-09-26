@@ -37,7 +37,7 @@ const (
 	slackTimeout        = 10 * time.Second
 
 	// Slack bot token env var, e.g. xoxb-...
-	envSlackBotToken = "SLACK_BOT_TOKEN"
+	envSlackBotToken = "SLACK_BOT_TOKEN" //nolint:gosec // env var name, not a credential
 )
 
 // slackBlock is a minimal Slack Block Kit block. We only need the shapes we

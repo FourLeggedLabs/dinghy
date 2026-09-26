@@ -18,11 +18,9 @@ package dinghyfile
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile/pipebuilder"
 	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"github.com/sirupsen/logrus"
-	"strings"
 
 	"github.com/fourleggedlabs/dinghy/pkg/cache"
 	"github.com/fourleggedlabs/dinghy/pkg/events"
@@ -32,18 +30,6 @@ import (
 
 // mock out events so that it gets passed over and doesn't do anything
 type EventsTestClient struct{}
-
-type partialMatcher struct {
-	y string
-}
-
-func (p partialMatcher) Matches(x interface{}) bool {
-	return strings.Contains(x.(string), p.y)
-}
-func (p partialMatcher) String() string {
-	return fmt.Sprintf("contains %v", p.y)
-}
-func containsString(x string) gomock.Matcher { return partialMatcher{x} }
 
 func (c *EventsTestClient) SendEvent(eventType string, event *events.Event) {}
 

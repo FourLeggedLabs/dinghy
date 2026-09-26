@@ -19,7 +19,7 @@ package bbcloud
 import (
 	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/log"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 
@@ -59,7 +59,7 @@ func (f *FileService) Download(org, repo, path, branch string) (string, error) {
 		return "", fmt.Errorf("Error downloading file from %s: Status: %d", url, resp.StatusCode)
 	}
 
-	ret, err := ioutil.ReadAll(resp.Body)
+	ret, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

@@ -239,7 +239,7 @@ func (c *RedisCache) GetAllDinghyfiles() []string {
 		}
 	}
 
-	for currentChildren, _ := range childrens {
+	for currentChildren := range childrens {
 		parents, errorNoKey := c.Client.SMembers(currentChildren).Result()
 		if errorNoKey != nil {
 			continue

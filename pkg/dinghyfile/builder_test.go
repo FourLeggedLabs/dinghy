@@ -862,7 +862,7 @@ func TestGetPipelineByID(t *testing.T) {
 
 	emptyset := []plank.Pipeline{}
 	foundset := []plank.Pipeline{
-		plank.Pipeline{Name: "pipelineName", ID: "pipelineID"},
+		{Name: "pipelineName", ID: "pipelineID"},
 	}
 
 	client := NewMockPlankClient(ctrl)
@@ -902,7 +902,7 @@ func TestGetPipelineByIDWhenApplicationNotExist(t *testing.T) {
 
 	emptyset := []plank.Pipeline{}
 	foundset := []plank.Pipeline{
-		plank.Pipeline{Name: "pipelineName", ID: "pipelineID"},
+		{Name: "pipelineName", ID: "pipelineID"},
 	}
 
 	client := NewMockPlankClient(ctrl)

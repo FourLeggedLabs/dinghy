@@ -34,22 +34,7 @@ jobs:
         run: go build -v .
 
       - name: Test
-        run: go test -v -race -covermode atomic -coverprofile=profile.cov ./...
-
-      - name: Send Coverage
-        uses: shogo82148/actions-goveralls@v1
-        with:
-          parallel: true
-          flag-name: Go-${{ matrix.go }}
-          path-to-profile: profile.cov
-
-  finish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: shogo82148/actions-goveralls@v1
-        with:
-          parallel-finished: true
+        run: go test -v -race -covermode atomic ./...
 
   docker:
     needs: build

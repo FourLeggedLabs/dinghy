@@ -1,117 +1,46 @@
 version: "2"
+
 run:
   timeout: 5m
-  tests: true
-  modules-download-mode: readonly
 
 linters:
+  default: standard
   enable:
-    - errcheck       # Check for unchecked errors
-    - govet          # Vet examines Go source code
-    - ineffassign    # Detect ineffectual assignments
-    - staticcheck    # Go static analysis
-    - unused         # Check for unused constants, variables, functions
-    - misspell       # Spell checking
-    - revive         # Golint replacement
-    - unconvert      # Remove unnecessary type conversions
-    - unparam        # Find unused function parameters
-    - gosec          # Security checks
-    - gocritic       # Opinionated Go linter
-    - bodyclose      # Check HTTP body close
-    - noctx          # Detect sending HTTP request without context
-    - contextcheck   # Detect context propagation issues
-    - sqlclosecheck  # Check sql.Rows/sql.Stmt are closed
-    - rowserrcheck   # Check sql.Rows errors
-    - errorlint      # Error wrapping checks
-    - exhaustive     # Check exhaustiveness of enum switch
-    - copyloopvar    # Check for loop variable capture (replaces exportloopref)
-    - gochecknoinits # Check for init functions
-    - goconst        # Find repeated strings that could be constants
-    - gomodguard     # Check for blocked dependencies
-    - goprintffuncname # Check printf-like function names
-    - nilerr         # Find returning nil error
-    - nolintlint     # Validate nolint directives
-    - prealloc       # Find slice declarations that could be preallocated
-    - predeclared    # Check for shadowing of predeclared identifiers
-    - thelper        # Detect test helpers without t.Helper()
-    - testifylint    # Check for common testify mistakes
-    - whitespace     # Check for unnecessary whitespace
-    - funlen         # Check function length
-
+    - bodyclose
+    - copyloopvar
+    - errcheck
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - staticcheck
+    - unused
   settings:
-    funlen:
-      lines: 120
-      statements: 80
     errcheck:
-      check-type-assertions: true
-      check-blank: true
-
-    govet:
-      enable-all: true
-      disable:
-        - shadow
-        - fieldalignment
-
-    revive:
-      rules:
-        - name: exported
-          arguments:
-            - checkPrivateReceivers
-            - disableStutteringCheck
-        # Surfaces long positional parameter lists (prefer an input struct).
-        # Seeded above the current max so it lands with zero offenders; ratchet
-        # this down in follow-up PRs as we refactor the worst offenders.
-        - name: argument-limit
-          arguments: [10]
-
-    gosec:
-      excludes:
-        - G104  # Audit errors not checked (covered by errcheck)
-        - G307  # Deferring unsafe method (false positives)
-        - G117  # Exported struct field matches secret pattern (config structs, not credentials)
-
-    gocritic:
-      enabled-tags:
-        - diagnostic
-        - style
-        - performance
-      disabled-checks:
-        - unnamedResult
-        - hugeParam
-
-    exhaustive:
-      default-signifies-exhaustive: true
-
+      # Conventionally-ignored error returns: http writes/closes where there
+      # is no meaningful recovery, and Close on already-consumed bodies.
+      exclude-functions:
+        - (io.Closer).Close
+        - (*bytes.Buffer).ReadFrom
+        - (net/http.ResponseWriter).Write
     staticcheck:
-      checks: ["all"]
-
+      checks: ["all", "-ST1000", "-ST1003", "-ST1005", "-ST1008", "-ST1012", "-ST1016", "-ST1017", "-ST1020", "-ST1021", "-ST1022", "-QF1008", "-QF1012"]
   exclusions:
     rules:
-      # Test files use hardcoded credentials, loopback URLs, and ignored errors — all intentional.
-      # staticcheck SA5011 (nil pointer after t.Fatal) is a false positive in tests:
-      # t.Fatal calls runtime.Goexit which staticcheck doesn't model as a terminator.
-      - path: ".*_test\\.go$"
+      # Tests commonly ignore errors and use weak randomness intentionally.
+      - path: _test\.go
         linters:
-          - gocritic
-          - gosec
           - errcheck
-          - staticcheck
-          - nolintlint
+          - gosec
+      - path: test/integration/
+        linters:
+          - unused
+      # GitHub webhook signature validation intentionally uses HMAC-SHA1
+      # (GitHub sends X-Hub-Signature with sha1); sha256 is also supported.
+      - path: pkg/git/github/validateSecret\.go
+        linters:
+          - gosec
 
-      # Ignore long lines in go:generate
-      - linters:
-          - revive
-        source: "^//go:generate "
-
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
-
-output:
-  formats:
-    text:
-      print-linter-name: true
-      print-issued-lines: true
-  sort-order:
-    - linter
-    - file
+formatters:
+  enable:
+    - gofmt

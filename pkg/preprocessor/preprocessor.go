@@ -215,7 +215,7 @@ func removeModules(input string, gitInfo git.GitInfo) string {
 	}
 
 	// All sprout functions will be changed for a dummy slice
-	for key, _ := range sprout.GenericFuncMap() {
+	for key := range sprout.GenericFuncMap() {
 		funcMap[key] = dummySlice
 	}
 

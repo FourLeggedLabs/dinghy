@@ -29,7 +29,7 @@ import (
 	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/fourleggedlabs/dinghy/pkg/settings/source"
 	"go.opentelemetry.io/otel/attribute"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -149,17 +149,14 @@ func (wa *WebAPI) Router(ts TraceSettings) *mux.Router {
 // ==============
 
 func (wa *WebAPI) logevents(w http.ResponseWriter, r *http.Request) {
-	logEvents, err := wa.LogEventsClient.GetLogEvents()
-	if err == nil {
-
-	}
+	logEvents, _ := wa.LogEventsClient.GetLogEvents()
 	bytesResult, _ := json.Marshal(logEvents)
-	w.Write(bytesResult)
+	_, _ = w.Write(bytesResult) //nolint:gosec // nothing to recover on write failure
 }
 
 func (wa *WebAPI) healthcheck(w http.ResponseWriter, r *http.Request) {
 	wa.Logger.Debug(r.RemoteAddr, " Requested ", r.RequestURI)
-	w.Write([]byte(`{"status":"ok"}`))
+	_, _ = w.Write([]byte(`{"status":"ok"}`)) //nolint:gosec // nothing to recover on write failure
 }
 
 func (wa *WebAPI) manualUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +186,7 @@ func (wa *WebAPI) manualUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	builder.Parser.SetBuilder(builder)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(r.Body)
+	_, _ = buf.ReadFrom(r.Body) //nolint:gosec // body read failure yields empty payload, handled downstream
 	fileService["master"] = make(map[string]string)
 	fileService["master"]["dinghyfile"] = buf.String()
 	wa.Logger.Infof("Received payload: %s", fileService["master"]["dinghyfile"])
@@ -211,7 +208,7 @@ func (wa *WebAPI) githubWebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := github.Push{Logger: dinghyLog}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		dinghyLog.Errorf("failed to read body in github webhook handler: %s", err.Error())
@@ -238,7 +235,7 @@ func (wa *WebAPI) githubWebhookHandler(w http.ResponseWriter, r *http.Request) {
 		repo := p.Repo()
 		org := p.Org()
 		whvalidations := settings.WebhookValidations
-		if whvalidations != nil && len(whvalidations) > 0 {
+		if len(whvalidations) > 0 {
 			if !validateWebhookSignature(whvalidations, repo, org, provider, body, r, dinghyLog) {
 				saveLogEventError(wa.LogEventsClient, &p, dinghyLog, logevents.LogEvent{RawData: string(body)})
 				return
@@ -280,7 +277,7 @@ func validateWebhookSignature(whvalidations []global.WebhookValidation, repo str
 	whcurrentvalidation := global.WebhookValidation{}
 	if found, whval := findWebhookValidation(whvalidations, repo, org, provider); found {
 		//If record is found and validation is disabled then just return true
-		if whval.Enabled == false {
+		if !whval.Enabled {
 			logger.Infof("Webhook validation for %v/%v is disabled so validation will by bypassed", org, repo)
 			return true
 		}
@@ -288,7 +285,7 @@ func validateWebhookSignature(whvalidations []global.WebhookValidation, repo str
 	} else {
 		logger.Infof("Webhook validation for %v/%v was not found, searching for default-webhook-secret", org, repo)
 		if foundDefault, whvalDefault := findWebhookValidation(whvalidations, "default-webhook-secret", org, provider); foundDefault {
-			if whvalDefault.Enabled == true {
+			if whvalDefault.Enabled {
 				whcurrentvalidation = *whvalDefault
 				logger.Infof("Webhook default secret was found for org: %v", org)
 			} else {
@@ -314,7 +311,7 @@ func validateWebhookSignature(whvalidations []global.WebhookValidation, repo str
 }
 
 func findWebhookValidation(whvalidations []global.WebhookValidation, repo string, org string, provider string) (bool, *global.WebhookValidation) {
-	if whvalidations != nil && len(whvalidations) > 0 {
+	if len(whvalidations) > 0 {
 		for i := range whvalidations {
 			whval := whvalidations[i]
 			if whval.Repo == repo && whval.Organization == org && whval.VersionControlProvider == provider {
@@ -355,7 +352,7 @@ func (wa *WebAPI) gitlabWebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := gitlab.Push{Logger: dinghyLog}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		dinghyLog.Errorf("failed to read body in gitlab webhook handler: %s", err.Error())
@@ -392,7 +389,7 @@ func (wa *WebAPI) stashWebhookHandler(w http.ResponseWriter, r *http.Request) {
 	payload := stash.WebhookPayload{}
 
 	dinghyLog.Infof("Reading stash payload body")
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		dinghyLog.Errorf("failed to read body in stash webhook handler: %s", err.Error())
 		util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
@@ -445,7 +442,7 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 
 	// read the response body to check for the type and use NopCloser so it can be decoded later
 	keys := make(map[string]interface{})
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		dinghyLog.Errorf("Failed to read request body: %s", err)
 		util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
@@ -453,7 +450,7 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+	r.Body = io.NopCloser(bytes.NewBuffer(b))
 	if err := json.Unmarshal(b, &keys); err != nil {
 		dinghyLog.Errorf("Unable to determine bitbucket event type: %s", err)
 		util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
@@ -472,7 +469,7 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 		dinghyLog.Info("Processing bitbucket-cloud webhook")
 		payload := bbcloud.WebhookPayload{}
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			dinghyLog.Errorf("failed to read body in bitbucket-cloud webhook handler: %s", err.Error())
 			util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
@@ -513,7 +510,7 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 		dinghyLog.Info("Processing bitbucket-server webhook")
 		payload := stash.WebhookPayload{}
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			dinghyLog.Errorf("failed to read body in bitbucket-server webhook handler: %s", err.Error())
 			util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
@@ -597,7 +594,7 @@ func (wa *WebAPI) ProcessPush(p Push, b *dinghyfile.PipelineBuilder, settings *g
 					p.SetCommitStatus(settings.InstanceId, git.StatusFailure, "Error processing Dinghyfile (malformed JSON)")
 				} else {
 					b.Logger.Errorf("Error processing Dinghyfile: %s", err.Error())
-					p.SetCommitStatus(settings.InstanceId, git.StatusError, fmt.Sprintf("%s", err.Error()))
+					p.SetCommitStatus(settings.InstanceId, git.StatusError, err.Error())
 				}
 				return dinghyfilesRendered.String(), err
 			}
@@ -625,7 +622,7 @@ func (wa *WebAPI) buildPipelines(
 ) {
 	l.Infof("Processing request for branch: %s", p.Branch())
 
-	ctx, span := otel.StartSpan(ctx, "buildPipelines")
+	_, span := otel.StartSpan(ctx, "buildPipelines")
 	defer span.End()
 	span.SetAttributes(
 		attribute.String("dinghy.provider", p.Name()),
@@ -781,7 +778,7 @@ func (wa *WebAPI) buildPipelines(
 		}
 	}
 
-	w.Write([]byte(`{"status":"accepted"}`))
+	_, _ = w.Write([]byte(`{"status":"accepted"}`)) //nolint:gosec // nothing to recover on write failure
 }
 
 func shouldRunValidation(p Push, settings *global.Settings, dinghyLog dinghylog.DinghyLog) bool {

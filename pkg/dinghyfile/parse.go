@@ -334,7 +334,9 @@ func (r *DinghyfileParser) Parse(org, repo, path, branch string, vars []VarMap) 
 			r.Builder.EventClient.SendEvent("parse-err-rawdata", event)
 			return nil, errRaw
 		}
-		r.Builder.Depman.SetRawData(r.Builder.Downloader.EncodeURL(org, repo, path, branch), string(result))
+		if errSet := r.Builder.Depman.SetRawData(r.Builder.Downloader.EncodeURL(org, repo, path, branch), string(result)); errSet != nil {
+			r.Builder.Logger.Errorf("failed to persist raw data: %v", errSet)
+		}
 	}
 
 	event.Dinghyfile = buf.String()

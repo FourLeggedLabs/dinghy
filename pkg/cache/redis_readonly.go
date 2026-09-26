@@ -17,18 +17,14 @@
 package cache
 
 import (
-	"context"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 // RedisCacheReadOnly maintains a dependency graph inside Redis
 type RedisCacheReadOnly struct {
 	Client *redis.Client
 	Logger *log.Entry
-	ctx    context.Context
-	stop   chan os.Signal
 }
 
 // SetDeps sets dependencies for a parent

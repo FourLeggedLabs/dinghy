@@ -19,10 +19,10 @@ package global
 
 import (
 	"fmt"
-	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/armory/go-yaml-tools/pkg/secrets"
 	"github.com/armory/go-yaml-tools/pkg/tls/client"
 	"github.com/armory/go-yaml-tools/pkg/tls/server"
+	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/jinzhu/copier"
 	"net/http"
 	"os"
@@ -294,7 +294,10 @@ func (s *Settings) GetRepoConfig(provider, repo, branch string) *RepoConfig {
 // fields **REDACTED**.
 func (s *Settings) Redacted() *Settings {
 	redacted := &Settings{}
-	copier.Copy(&redacted, s)
+	if err := copier.Copy(&redacted, s); err != nil {
+		// Fall back to the un-redacted struct is unsafe; fail loudly.
+		panic(fmt.Sprintf("failed to copy settings for redaction: %v", err))
+	}
 
 	if redacted.GitHubToken != "" {
 		redacted.GitHubToken = "**REDACTED**"

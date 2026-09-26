@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	HTTP_FORMAT_SEPERATOR         = "--"
+	HTTP_FORMAT_SEPARATOR         = "--"
 	HTTP_FORMAT_VALIDATION_ERRROR = "NewHttpLogFormatter called without %s field"
 )
 
@@ -44,7 +44,7 @@ func (hlf *HttpLogFormatter) Format(e *logrus.Entry) ([]byte, error) {
 		"main",
 		strings.ToUpper(e.Level.String()),
 		"golang",
-		HTTP_FORMAT_SEPERATOR,
+		HTTP_FORMAT_SEPARATOR,
 		strings.TrimSpace(e.Message),
 	}
 	return []byte(strings.Join(parts, " ")), nil
