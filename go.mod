@@ -106,4 +106,4 @@ replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110
 
 //replace github.com/armory/plank/v4 v4.1.0 => ../plank
 
-go 1.25
+go 1.27

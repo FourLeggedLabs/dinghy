@@ -115,6 +115,8 @@ type Settings struct {
 	GitHubToken string `json:"githubToken,omitempty" yaml:"githubToken"`
 	// Github endpoint
 	GithubEndpoint string `json:"githubEndpoint,omitempty" yaml:"githubEndpoint"`
+	// GitHub App authentication (preferred over GitHubToken when set)
+	GitHubApp GitHubAppConfig `json:"githubApp,omitempty" yaml:"githubApp"`
 	// Gitlab Token
 	GitLabToken string `json:"gitlabToken,omitempty" yaml:"gitlabToken"`
 	// Gitlanb api endpoint
@@ -167,6 +169,21 @@ type Settings struct {
 	MultipleBranchesEnabled string `json:"multipleBranchesEnabled" yaml:"multipleBranchesEnabled"`
 	// Enable using savePipeline and updatePipeline tasks from Orca
 	UpsertPipelineUsingOrcaTaskEnabled bool `json:"upsertPipelineUsingOrcaTaskEnabled" yaml:"upsertPipelineUsingOrcaTaskEnabled"`
+}
+
+// GitHubAppConfig holds GitHub App authentication settings. When AppID and
+// PrivateKey are set, installation tokens are used instead of GitHubToken.
+type GitHubAppConfig struct {
+	// AppID is the GitHub App ID (not the client ID)
+	AppID int64 `json:"appID,omitempty" yaml:"appID"`
+	// InstallationID is the installation of the App on the target org/user
+	InstallationID int64 `json:"installationID,omitempty" yaml:"installationID"`
+	// PrivateKeyPath is the path to the App's PEM private key
+	PrivateKeyPath string `json:"privateKeyPath,omitempty" yaml:"privateKeyPath"`
+	// PrivateKey holds the PEM private key inline (base64 or raw), used if PrivateKeyPath is empty
+	PrivateKey string `json:"privateKey,omitempty" yaml:"privateKey"`
+	// Endpoint override for token installation API (defaults to GithubEndpoint)
+	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint"`
 }
 
 type Sqlconfig struct {

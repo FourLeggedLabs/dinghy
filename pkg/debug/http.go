@@ -11,8 +11,8 @@ import (
 )
 
 type HTTPLogger interface {
-	LogRequest(string, ...interface{})
-	LogResponse(string, ...interface{})
+	LogRequest(string)
+	LogResponse(string)
 }
 
 type InterceptorLogger struct {
@@ -33,12 +33,12 @@ func (c *InterceptorLogger) RoundTrip(req *http.Request) (*http.Response, error)
 	if err != nil {
 		u = req.URL.String()
 	}
-	c.logger.LogRequest(fmt.Sprint(fmt.Sprintf("%s --> ", req.Method), u))
+	c.logger.LogRequest(fmt.Sprintf("%s --> %s", req.Method, u))
 	resp, err := c.rt.RoundTrip(req)
 	if err != nil {
 		return resp, err
 	} else {
-		c.logger.LogResponse(fmt.Sprint(fmt.Sprintf("%d <-- ", resp.StatusCode), u))
+		c.logger.LogResponse(fmt.Sprintf("%d <-- %s", resp.StatusCode, u))
 	}
 	return resp, err
 }
@@ -51,15 +51,15 @@ func NewLogrusDebugLogger(log *logrus.Logger) *LogrusDebugLogger {
 	return &LogrusDebugLogger{log: log}
 }
 
-func (l *LogrusDebugLogger) LogRequest(msg string, args ...interface{}) {
+func (l *LogrusDebugLogger) LogRequest(msg string) {
 	if l.log.Level == logrus.DebugLevel {
-		l.log.Logf(logrus.DebugLevel, msg, args...)
+		l.log.Debug(msg)
 	}
 }
 
-func (l *LogrusDebugLogger) LogResponse(msg string, args ...interface{}) {
+func (l *LogrusDebugLogger) LogResponse(msg string) {
 	if l.log.Level == logrus.DebugLevel {
-		l.log.Logf(logrus.DebugLevel, msg, args...)
+		l.log.Debug(msg)
 	}
 }
 
