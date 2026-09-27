@@ -19,7 +19,13 @@ package web
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
+	"strconv"
+	"testing"
+
 	"github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
 	"github.com/fourleggedlabs/dinghy/pkg/git/github"
 	dinghylog "github.com/fourleggedlabs/dinghy/pkg/log"
@@ -33,7 +39,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"testing"
 
 	"github.com/fourleggedlabs/dinghy/pkg/mock"
 
@@ -774,4 +779,95 @@ func TestBuildPipelinesWhenDinghyIgnoreRegexp2Disabled(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, r.Code)
 	assert.Equal(t, `{"status":"accepted"}`, r.Body.String())
+}
+
+func sha1Signature(t *testing.T, payload []byte, key string) string {
+	t.Helper()
+	mac := hmac.New(sha1.New, []byte(key))
+	mac.Write(payload)
+	return "sha1=" + hex.EncodeToString(mac.Sum(nil))
+}
+
+func TestValidateWebhookSignature(t *testing.T) {
+	secret := "mysecret"
+	rawPayload := `{"ref":"refs/heads/master","repository":{"organization":"test_org","name":"test_repo"}}`
+	echoBody := []byte(`{"raw_payload":` + strconv.Quote(rawPayload) + `}`)
+	directBody := []byte(rawPayload)
+
+	validations := []global.WebhookValidation{
+		{
+			Enabled:                true,
+			VersionControlProvider: "github",
+			Organization:           "test_org",
+			Repo:                   "test_repo",
+			Secret:                 secret,
+		},
+	}
+
+	cases := []struct {
+		name     string
+		body     []byte
+		headers  map[string]string
+		expected bool
+	}{
+		{
+			name:     "echo mode valid",
+			body:     echoBody,
+			headers:  map[string]string{"webhook-secret": sha1Signature(t, []byte(rawPayload), secret)},
+			expected: true,
+		},
+		{
+			name:     "echo mode forged",
+			body:     echoBody,
+			headers:  map[string]string{"webhook-secret": sha1Signature(t, []byte("tampered"), secret)},
+			expected: false,
+		},
+		{
+			name:     "echo mode secret without raw_payload",
+			body:     directBody,
+			headers:  map[string]string{"webhook-secret": sha1Signature(t, directBody, secret)},
+			expected: false,
+		},
+		{
+			name:     "standalone mode valid",
+			body:     directBody,
+			headers:  map[string]string{"X-Hub-Signature": sha1Signature(t, directBody, secret)},
+			expected: true,
+		},
+		{
+			name:     "standalone mode forged",
+			body:     directBody,
+			headers:  map[string]string{"X-Hub-Signature": "sha1=deadbeef"},
+			expected: false,
+		},
+		{
+			name:     "standalone mode malformed signature",
+			body:     directBody,
+			headers:  map[string]string{"X-Hub-Signature": "no-equals-no-crash"},
+			expected: false,
+		},
+		{
+			name:     "no signature headers",
+			body:     directBody,
+			headers:  map[string]string{},
+			expected: false,
+		},
+		{
+			name:     "standalone mode lowercase header",
+			body:     directBody,
+			headers:  map[string]string{"x-hub-signature": sha1Signature(t, directBody, secret)},
+			expected: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			logger := dinghylog.NewDinghyLogs(logrus.StandardLogger())
+			r := httptest.NewRequest("POST", "/v1/webhooks/github", bytes.NewBuffer(tc.body))
+			for k, v := range tc.headers {
+				r.Header.Set(k, v)
+			}
+			assert.Equal(t, tc.expected, validateWebhookSignature(validations, "test_repo", "test_org", "github", tc.body, r, logger))
+		})
+	}
 }
