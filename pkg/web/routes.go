@@ -300,14 +300,23 @@ func validateWebhookSignature(whvalidations []global.WebhookValidation, repo str
 	rawPayload := getRawPayload(body)
 	// X-Hub-Signature is the original header from github, but since this message is from echo we receive webhook-secret
 	whsecret := getHeader(r, "webhook-secret")
-
-	if rawPayload == "" || whsecret == "" {
-		// Validate in webhook and raw_payload and webhook secret is present.
-		logger.Error("There is a webhook validation registered in dinghy but the webhook is not configured in github side")
-		return false
+	if whsecret != "" {
+		if rawPayload == "" {
+			// Validate in webhook and raw_payload and webhook secret is present.
+			logger.Error("There is a webhook validation registered in dinghy but the webhook is not configured in github side")
+			return false
+		}
+		return github.IsValidSignature([]byte(rawPayload), whsecret, whcurrentvalidation.Secret, logger)
 	}
 
-	return github.IsValidSignature([]byte(rawPayload), whsecret, whcurrentvalidation.Secret, logger)
+	// When dinghy runs standalone and the webhook is pointed directly at it,
+	// github sends the signature itself over the unwrapped payload
+	if ghsignature := getHeader(r, "X-Hub-Signature"); ghsignature != "" {
+		return github.IsValidSignature(body, ghsignature, whcurrentvalidation.Secret, logger)
+	}
+
+	logger.Error("There is a webhook validation registered in dinghy but the webhook is not configured in github side")
+	return false
 }
 
 func findWebhookValidation(whvalidations []global.WebhookValidation, repo string, org string, provider string) (bool, *global.WebhookValidation) {

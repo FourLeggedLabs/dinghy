@@ -10,8 +10,9 @@ import (
 
 func IsValidSignature(rawpayload []byte, webhookSecret string, key string, logger log.DinghyLog) bool {
 	gotHash := strings.SplitN(webhookSecret, "=", 2)
-	if gotHash[0] != "sha1" {
-		logger.Error("Invalid webhook value")
+	if len(gotHash) != 2 || gotHash[0] != "sha1" {
+		logger.Errorf("Invalid webhook value: %q", webhookSecret)
+		return false
 	}
 
 	hash := hmac.New(sha1.New, []byte(key))
@@ -21,7 +22,7 @@ func IsValidSignature(rawpayload []byte, webhookSecret string, key string, logge
 	}
 
 	expectedHash := hex.EncodeToString(hash.Sum(nil))
-	validation := gotHash[1] == expectedHash
+	validation := hmac.Equal([]byte(gotHash[1]), []byte(expectedHash))
 	logger.Printf("Result from hash validation was: %v", validation)
 	if !validation {
 		logger.Error("Invalid webhook secret signature")
