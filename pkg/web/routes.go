@@ -245,6 +245,12 @@ func (wa *WebAPI) githubWebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	p.Ref = strings.Replace(p.Ref, "refs/heads/", "", 1)
 
+	// A deleted branch or tag has a null head_commit and no files to process.
+	if p.Deleted {
+		dinghyLog.Infof("Ignoring deleted ref %s", p.Ref)
+		return
+	}
+
 	// TODO: we're assigning config in two places here, we should refactor this
 	gh := github.Config{Endpoint: settings.GithubEndpoint, Token: settings.GitHubToken, App: settings.GitHubApp}
 	p.Config = gh

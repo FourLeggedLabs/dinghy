@@ -26,6 +26,7 @@ type Push struct {
 	Commits     []Commit   `json:"commits"`
 	Repository  Repository `json:"repository"`
 	Ref         string     `json:"ref"`
+	Deleted     bool       `json:"deleted"`
 	Config      Config
 	DeckBaseURL string
 	Logger      log.DinghyLog
