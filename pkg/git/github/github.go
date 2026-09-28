@@ -147,19 +147,18 @@ func (g *Config) GetPullRequest(org, repo, ref, sha string) (*github.PullRequest
 
 func (g *Config) GetShaFromRawData(rawPushData []byte) string {
 
-	// deserialze push data to a map.  used in template logic later
+	// deserialize push data to a map. used in template logic later
 	content := make(map[string]interface{})
-	_ = json.Unmarshal(rawPushData, &content)
-
-	sha := ""
-	v, ok := content[head_commit]
-	if ok {
-		v, ok = v.(map[string]interface{})[id]
-		if ok {
-			sha = v.(string)
-		}
+	if err := json.Unmarshal(rawPushData, &content); err != nil {
+		return ""
 	}
 
+	// head_commit is null when a push deletes a branch or tag.
+	head, ok := content[head_commit].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	sha, _ := head[id].(string)
 	return sha
 }
 

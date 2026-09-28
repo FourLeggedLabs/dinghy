@@ -95,3 +95,49 @@ func TestIsBranch(t *testing.T) {
 		})
 	}
 }
+
+func TestGetShaFromRawData(t *testing.T) {
+	g := Config{}
+	cases := map[string]struct {
+		payload  string
+		expected string
+	}{
+		"push with head commit": {
+			payload:  `{"ref":"refs/heads/main","head_commit":{"id":"abc123","message":"update"}}`,
+			expected: "abc123",
+		},
+		"deleted branch": {
+			payload: `{
+				"ref": "refs/heads/feature/some-branch",
+				"before": "1111111111111111111111111111111111111111",
+				"after": "0000000000000000000000000000000000000000",
+				"deleted": true,
+				"commits": [],
+				"head_commit": null
+			}`,
+			expected: "",
+		},
+		"missing head commit": {
+			payload:  `{"ref":"refs/heads/main"}`,
+			expected: "",
+		},
+		"head commit without id": {
+			payload:  `{"head_commit":{"message":"update"}}`,
+			expected: "",
+		},
+		"non-string id": {
+			payload:  `{"head_commit":{"id":123}}`,
+			expected: "",
+		},
+		"invalid json": {
+			payload:  `{`,
+			expected: "",
+		},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, c.expected, g.GetShaFromRawData([]byte(c.payload)))
+		})
+	}
+}

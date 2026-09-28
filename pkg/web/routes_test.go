@@ -129,6 +129,38 @@ func TestGithubWebhookHandlerNoRef(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
+func TestGithubWebhookHandlerDeletedRef(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	logger := mock.NewMockFieldLogger(ctrl)
+	logger.EXPECT().Infof(gomock.Eq("Received payload: %s"), gomock.Any()).Times(1)
+	logger.EXPECT().Infof(gomock.Eq("Ignoring deleted ref %s"), gomock.Eq("feature/some-branch")).Times(1)
+	logger.EXPECT().WithFields(gomock.Any())
+
+	sc := source.NewMockSourceConfiguration(ctrl)
+	sc.EXPECT().GetSettings(gomock.Any(), gomock.Any()).AnyTimes().DoAndReturn(func(r *http.Request, logger2 *logrus.Logger) (*global.Settings, util.PlankClient, error) {
+		return &global.Settings{}, dinghyfile.NewMockPlankClient(ctrl), nil
+	})
+	wa := NewWebAPI(sc, nil, nil, logger, nil, nil, nil, nil)
+
+	payload := bytes.NewBufferString(`{
+		"ref": "refs/heads/feature/some-branch",
+		"before": "1111111111111111111111111111111111111111",
+		"after": "0000000000000000000000000000000000000000",
+		"repository": {"name": "my-repo", "organization": "my-org"},
+		"created": false,
+		"deleted": true,
+		"commits": [],
+		"head_commit": null
+	}`)
+	req := httptest.NewRequest("POST", "/v1/webhooks/github", payload)
+	rr := httptest.NewRecorder()
+	wa.githubWebhookHandler(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Empty(t, rr.Body.String())
+}
+
 func TestGithubWebhookHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
