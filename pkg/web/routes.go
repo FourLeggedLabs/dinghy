@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fourleggedlabs/dinghy/pkg/events"
 	"github.com/fourleggedlabs/dinghy/pkg/git/bbcloud"
@@ -60,7 +61,7 @@ type Push interface {
 	Branch() string
 	IsBranch(string) bool
 	IsMaster() bool
-	SetCommitStatus(instanceId string, s git.Status, description string)
+	SetCommitStatus(instanceId string, s git.Status, description string) error
 	GetCommitStatus() (error, git.Status, string)
 	GetCommits() []string
 	Name() string
@@ -578,14 +579,19 @@ func (wa *WebAPI) bitbucketWebhookHandler(w http.ResponseWriter, r *http.Request
 // utilities
 // =========
 
-// ProcessPush processes a push using a pipeline builder
+// ProcessPush processes a push using a pipeline builder. Besides processing
+// errors, it returns a rate limit error from posting the push's final status,
+// so that the caller retries the push once the limit resets; other status
+// errors are logged by the Push and don't fail it.
 func (wa *WebAPI) ProcessPush(p Push, b *dinghyfile.PipelineBuilder, settings *global.Settings) (string, error) {
 	// Ensure dinghyfile was changed.
 	if !p.ContainsFile(settings.DinghyFilename) {
 		b.Logger.Infof("Push does not include %s, skipping.", settings.DinghyFilename)
+		// The lookup only avoids overwriting an existing status, so post one
+		// when it fails: a required check without a status blocks merging.
 		errstat, status, _ := p.GetCommitStatus()
-		if errstat == nil && status == "" {
-			p.SetCommitStatus(settings.InstanceId, git.StatusSuccess, fmt.Sprintf("No changes in %v.", settings.DinghyFilename))
+		if errstat != nil || status == "" {
+			return "", rateLimited(p.SetCommitStatus(settings.InstanceId, git.StatusSuccess, fmt.Sprintf("No changes in %v.", settings.DinghyFilename)))
 		}
 		return "", nil
 	}
@@ -593,7 +599,7 @@ func (wa *WebAPI) ProcessPush(p Push, b *dinghyfile.PipelineBuilder, settings *g
 	b.Logger.Info("Dinghyfile found in commit for repo " + p.Repo())
 
 	// Set commit status to the pending yellow dot.
-	p.SetCommitStatus(settings.InstanceId, git.StatusPending, git.DefaultMessagesByBuilderAction[b.Action][git.StatusPending])
+	statusErr := p.SetCommitStatus(settings.InstanceId, git.StatusPending, git.DefaultMessagesByBuilderAction[b.Action][git.StatusPending])
 
 	var dinghyfilesRendered bytes.Buffer
 	for _, filePath := range p.Files() {
@@ -606,17 +612,30 @@ func (wa *WebAPI) ProcessPush(p Push, b *dinghyfile.PipelineBuilder, settings *g
 			if err != nil {
 				if err == dinghyfile.ErrMalformedJSON {
 					b.Logger.Errorf("Error processing Dinghyfile (malformed JSON): %s", err.Error())
-					p.SetCommitStatus(settings.InstanceId, git.StatusFailure, "Error processing Dinghyfile (malformed JSON)")
+					statusErr = p.SetCommitStatus(settings.InstanceId, git.StatusFailure, "Error processing Dinghyfile (malformed JSON)")
 				} else {
 					b.Logger.Errorf("Error processing Dinghyfile: %s", err.Error())
-					p.SetCommitStatus(settings.InstanceId, git.StatusError, err.Error())
+					statusErr = p.SetCommitStatus(settings.InstanceId, git.StatusError, err.Error())
+				}
+				if rl := rateLimited(statusErr); rl != nil {
+					err = errors.Join(err, rl)
 				}
 				return dinghyfilesRendered.String(), err
 			}
-			p.SetCommitStatus(settings.InstanceId, git.StatusSuccess, git.DefaultMessagesByBuilderAction[b.Action][git.StatusSuccess])
+			statusErr = p.SetCommitStatus(settings.InstanceId, git.StatusSuccess, git.DefaultMessagesByBuilderAction[b.Action][git.StatusSuccess])
 		}
 	}
-	return dinghyfilesRendered.String(), nil
+	return dinghyfilesRendered.String(), rateLimited(statusErr)
+}
+
+// rateLimited returns err if it comes from an exhausted GitHub rate limit, and
+// nil otherwise.
+func rateLimited(err error) error {
+	var rl *util.GithubRateLimitErr
+	if errors.As(err, &rl) {
+		return err
+	}
+	return nil
 }
 
 type UserWriteAccessValidation struct {
@@ -635,7 +654,29 @@ func (wa *WebAPI) buildPipelines(
 	pc util.PlankClient,
 	s *global.Settings,
 ) {
+	wa.buildPipelinesAttempt(ctx, 0, p, rawPushBytes, d, w, l, pullRequest, pc, s)
+}
+
+// buildPipelinesAttempt runs buildPipelines for a push that has been retried
+// attempt times after running out of GitHub rate limit.
+func (wa *WebAPI) buildPipelinesAttempt(
+	ctx context.Context,
+	attempt int,
+	p Push,
+	rawPushBytes []byte,
+	d dinghyfile.Downloader,
+	w http.ResponseWriter,
+	l dinghylog.DinghyLog,
+	pullRequest string,
+	pc util.PlankClient,
+	s *global.Settings,
+) {
 	l.Infof("Processing request for branch: %s", p.Branch())
+	retry := func(err error) bool {
+		return wa.retryAfterRateLimit(ctx, err, attempt, p, l, w, func(ctx context.Context, attempt int) {
+			wa.buildPipelinesAttempt(ctx, attempt, p, rawPushBytes, d, discardResponseWriter{}, l, pullRequest, pc, s)
+		})
+	}
 
 	_, span := otel.StartSpan(ctx, "buildPipelines")
 	defer span.End()
@@ -692,8 +733,11 @@ func (wa *WebAPI) buildPipelines(
 	l.Info("Processing Push")
 
 	renderedDinghyfile, err := wa.ProcessPush(p, builder, s)
+	if retry(err) {
+		return
+	}
 
-	if err == dinghyfile.ErrMalformedJSON {
+	if errors.Is(err, dinghyfile.ErrMalformedJSON) {
 		otel.RecordError(span, err)
 		util.WriteHTTPError(w, http.StatusUnprocessableEntity, err)
 		l.Errorf("ProcessPush Failed (malformed JSON): %s", err.Error())
@@ -739,6 +783,9 @@ func (wa *WebAPI) buildPipelines(
 			if !ignoreFile.ShouldIgnore(file) {
 				// ensure module is correctly parsed
 				if _, err := builder.Parser.Parse(p.Org(), p.Repo(), file, p.Branch(), nil); err != nil {
+					if retry(err) {
+						return
+					}
 					setCommitStatus(p, s.InstanceId, git.StatusError, "module parse failed")
 					l.Errorf("module parse failed: %s", err.Error())
 					saveLogEventError(wa.LogEventsClient, p, l, logevents.LogEvent{
@@ -749,6 +796,9 @@ func (wa *WebAPI) buildPipelines(
 					return
 				}
 				if err := builder.RebuildModuleRoots(p.Org(), p.Repo(), file, p.Branch(), p.PusherName()); err != nil {
+					if retry(err) {
+						return
+					}
 					switch err.(type) {
 					case *util.GitHubFileNotFoundErr:
 						util.WriteHTTPError(w, http.StatusNotFound, err)
@@ -796,6 +846,38 @@ func (wa *WebAPI) buildPipelines(
 	_, _ = w.Write([]byte(`{"status":"accepted"}`)) //nolint:gosec // nothing to recover on write failure
 }
 
+// afterFunc schedules retries; tests replace it to run them without waiting.
+var afterFunc = time.AfterFunc
+
+// retryAfterRateLimit reruns the push after the GitHub rate limit resets if
+// err says it ran out, answers the webhook with 202, and reports whether it
+// did. Without it, a dinghyfile pushed while the limit is exhausted never
+// reaches Spinnaker and the push's commit never gets a status.
+func (wa *WebAPI) retryAfterRateLimit(ctx context.Context, err error, attempt int, p Push, l dinghylog.DinghyLog, w http.ResponseWriter, rerun func(ctx context.Context, attempt int)) bool {
+	delay, ok := util.RateLimitRetryDelay(err, time.Now())
+	if !ok {
+		return false
+	}
+	if attempt >= util.RateLimitRetries {
+		l.Errorf("Giving up on push to %s/%s branch %s after %d rate limit retries: %s", p.Org(), p.Repo(), p.Branch(), attempt, err.Error())
+		return false
+	}
+	l.Warnf("Retrying push to %s/%s branch %s in %s (retry %d of %d): %s", p.Org(), p.Repo(), p.Branch(), delay.Round(time.Second), attempt+1, util.RateLimitRetries, err.Error())
+	ctx = context.WithoutCancel(ctx)
+	afterFunc(delay, func() { rerun(ctx, attempt+1) })
+	w.WriteHeader(http.StatusAccepted)
+	_, _ = w.Write([]byte(`{"status":"retrying"}`))
+	return true
+}
+
+// discardResponseWriter answers for a retried push, whose webhook request was
+// answered when the retry was scheduled.
+type discardResponseWriter struct{}
+
+func (discardResponseWriter) Header() http.Header         { return http.Header{} }
+func (discardResponseWriter) Write(b []byte) (int, error) { return len(b), nil }
+func (discardResponseWriter) WriteHeader(int)             {}
+
 func shouldRunValidation(p Push, settings *global.Settings, dinghyLog dinghylog.DinghyLog) bool {
 	if rc := settings.GetRepoConfig(p.Name(), p.Repo(), p.Branch()); rc != nil {
 		if !p.IsBranch(rc.Branch) {
@@ -813,8 +895,11 @@ func shouldRunValidation(p Push, settings *global.Settings, dinghyLog dinghylog.
 	return false
 }
 
+// setCommitStatus sets a template repo's status. Its errors are logged by the
+// Push; rerunning a module rebuild only to repost a status costs more than
+// the status is worth.
 func setCommitStatus(p Push, instanceId string, s git.Status, description string) {
-	p.SetCommitStatus(instanceId, s, description)
+	_ = p.SetCommitStatus(instanceId, s, description)
 }
 
 func setCommitStatusByAction(p Push, instanceId string, s git.Status, action pipebuilder.BuilderAction) {

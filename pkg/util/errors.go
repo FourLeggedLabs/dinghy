@@ -19,15 +19,16 @@ package util
 import (
 	"fmt"
 	"regexp"
+	"time"
 )
 
 type GithubRateLimitErr struct {
 	RateLimit int
-	RateReset string
+	Reset     time.Time
 }
 
 func (e *GithubRateLimitErr) Error() string {
-	return fmt.Sprintf("Exceeded Githib rate limit: limit %d, reset %s", e.RateLimit, e.RateReset)
+	return fmt.Sprintf("Exceeded Githib rate limit: limit %d, reset %s", e.RateLimit, e.Reset)
 }
 
 type GitHubFileNotFoundErr struct {

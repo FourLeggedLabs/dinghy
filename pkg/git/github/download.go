@@ -18,6 +18,7 @@ package github
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
 	"github.com/fourleggedlabs/dinghy/pkg/log"
@@ -95,7 +96,7 @@ func (f *FileService) DownloadContents(org, repo, path, branch string) (string, 
 		return "", err
 	}
 	if token := f.GitHub.GetToken(); token != "" {
-		req.Header.Add("Authorization", fmt.Sprintf("token %s", f.GitHub.GetToken()))
+		req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
 	}
 	req.Header.Add("Accept", "application/vnd.github.v3.raw")
 
@@ -106,13 +107,11 @@ func (f *FileService) DownloadContents(org, repo, path, branch string) (string, 
 
 	// check GitHub response
 	if err = github.CheckResponse(resp); err != nil {
-		if e, ok := err.(*github.RateLimitError); ok {
-			return "", &util.GithubRateLimitErr{RateLimit: e.Rate.Limit, RateReset: e.Rate.Reset.String()}
-		}
-		if util.IsGitHubFileNotFoundErr(err.Error()) {
+		var rl *github.RateLimitError
+		if !errors.As(err, &rl) && util.IsGitHubFileNotFoundErr(err.Error()) {
 			return "", &util.GitHubFileNotFoundErr{Org: org, Repo: repo, Path: path}
 		}
-		return "", err
+		return "", rateLimitErr(err)
 	}
 
 	b := new(bytes.Buffer)

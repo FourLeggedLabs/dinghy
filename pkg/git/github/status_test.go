@@ -21,41 +21,57 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/fourleggedlabs/dinghy/pkg/git"
 	"github.com/fourleggedlabs/dinghy/pkg/mock"
 )
 
-func TestSetCommitStatusSuccessfully(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	logger := mock.NewMockDinghyLog(ctrl)
-	logger.EXPECT().Error(gomock.Any()).Times(0)
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "")
-	}))
-	defer ts.Close()
-	// TODO: Do not use global variable. This will lead to side-effects.
-	p := Push{
-		Config: Config{
-			Endpoint: ts.URL,
-		},
-		Repository: Repository{Organization: "armory", Name: "dinghy"},
-		Commits: []Commit{
-			{
-				ID: "ABC",
-			},
-		},
-		Logger: logger,
+func TestSetCommitStatusPostsOnHeadCommitOnly(t *testing.T) {
+	tests := []struct {
+		name    string
+		commits []Commit
+		want    []string
+	}{
+		{"head of several", []Commit{{ID: "aaa"}, {ID: "bbb"}, {ID: "ccc"}}, []string{"/api/v3/repos/armory/dinghy/statuses/ccc"}},
+		{"no commits", nil, nil},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			logger := mock.NewMockDinghyLog(ctrl)
 
-	// This shouldn't throw exceptions/panics
-	p.SetCommitStatus("dinghy", git.StatusPending, git.DefaultPendingMessage)
+			var mu sync.Mutex
+			var posted []string
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mu.Lock()
+				defer mu.Unlock()
+				posted = append(posted, r.Method+" "+r.URL.Path)
+				w.WriteHeader(http.StatusCreated)
+				fmt.Fprint(w, "{}")
+			}))
+			defer ts.Close()
+			p := Push{
+				Config:     Config{Endpoint: ts.URL},
+				Repository: Repository{Organization: "armory", Name: "dinghy"},
+				Commits:    tt.commits,
+				Logger:     logger,
+			}
+
+			if err := p.SetCommitStatus("dinghy", git.StatusPending, git.DefaultPendingMessage); err != nil {
+				t.Fatal(err)
+			}
+			var want []string
+			for _, path := range tt.want {
+				want = append(want, "POST "+path)
+			}
+			assert.Equal(t, want, posted)
+		})
+	}
 }
 
 func TestSetCommitStatusFails(t *testing.T) {
@@ -65,7 +81,6 @@ func TestSetCommitStatusFails(t *testing.T) {
 	logger := mock.NewMockDinghyLog(ctrl)
 	logger.EXPECT().Error(gomock.Any()).Times(1)
 
-	// TODO: Do not use global variable. This will lead to side-effects.
 	p := Push{
 		Config: Config{
 			Endpoint: "invalid-url",
@@ -79,9 +94,9 @@ func TestSetCommitStatusFails(t *testing.T) {
 		Logger: logger,
 	}
 
-	// TODO: this doesn't actually test anything
-	// This shouldn't throw exceptions/panics
-	p.SetCommitStatus("dinghy", git.StatusPending, git.DefaultPendingMessage)
+	if err := p.SetCommitStatus("dinghy", git.StatusPending, git.DefaultPendingMessage); err == nil {
+		t.Fatal("want an error")
+	}
 }
 
 func TestGetCommitStatus(t *testing.T) {

@@ -20,10 +20,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
+	"sync"
+
 	"github.com/fourleggedlabs/dinghy/pkg/settings/global"
 	"github.com/fourleggedlabs/dinghy/pkg/util"
 	"github.com/google/go-github/v74/github"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -44,35 +47,66 @@ type Config struct {
 	App      global.GitHubAppConfig
 }
 
-func newGitHubClientWithApp(ctx context.Context, endpoint, token string, app global.GitHubAppConfig) (*github.Client, error) {
-	tc, err := newAuthClient(app, token, endpoint)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create github auth client: %s", err)
+// authedClient is a GitHub API client and the token source behind it.
+type authedClient struct {
+	gh     *github.Client
+	tokens oauth2.TokenSource
+}
+
+type clientKey struct {
+	endpoint string
+	token    string
+	app      global.GitHubAppConfig
+}
+
+// Settings, and so Config, are rebuilt for every webhook, so clients are cached
+// by credentials. Reusing one keeps go-github's view of the rate limit and the
+// GitHub App installation token across requests.
+var (
+	clientsMu sync.Mutex
+	clients   = map[clientKey]*authedClient{}
+)
+
+func (g *Config) client() (*authedClient, error) {
+	key := clientKey{endpoint: g.Endpoint, token: g.Token, app: g.App}
+	clientsMu.Lock()
+	defer clientsMu.Unlock()
+	if c, ok := clients[key]; ok {
+		return c, nil
 	}
-	client, err := github.NewClient(tc).WithEnterpriseURLs(endpoint, endpoint)
+	c, err := newAuthedClient(g.Endpoint, g.Token, g.App)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create github client: %s", err)
+		return nil, err
 	}
-	return client, nil
+	clients[key] = c
+	return c, nil
+}
+
+// rateLimitErr converts go-github's rate limit error so callers can recognize
+// it without depending on go-github.
+func rateLimitErr(err error) error {
+	var e *github.RateLimitError
+	if errors.As(err, &e) {
+		return &util.GithubRateLimitErr{RateLimit: e.Rate.Limit, Reset: e.Rate.Reset.Time}
+	}
+	return err
 }
 
 func (g *Config) DownloadContents(org, repo, path, branch string) (string, error) {
 	ctx := context.Background()
-	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
+	c, err := g.client()
 	if err != nil {
 		return "", err
 	}
 
 	opt := &github.RepositoryContentGetOptions{Ref: branch}
-	r, _, err := client.Repositories.DownloadContents(ctx, org, repo, path, opt)
+	r, _, err := c.gh.Repositories.DownloadContents(ctx, org, repo, path, opt)
 	if err != nil {
-		if e, ok := err.(*github.RateLimitError); ok {
-			return "", &util.GithubRateLimitErr{RateLimit: e.Rate.Limit, RateReset: e.Rate.Reset.String()}
-		}
-		if util.IsGitHubFileNotFoundErr(err.Error()) {
+		var rl *github.RateLimitError
+		if !errors.As(err, &rl) && util.IsGitHubFileNotFoundErr(err.Error()) {
 			return "", &util.GitHubFileNotFoundErr{Org: org, Repo: repo, Path: path}
 		}
-		return "", err
+		return "", rateLimitErr(err)
 	}
 
 	b := new(bytes.Buffer)
@@ -91,35 +125,26 @@ func (g *Config) CreateStatus(status *Status, org, repo, ref string) error {
 	}
 
 	ctx := context.Background()
-	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
+	c, err := g.client()
 	if err != nil {
 		return err
 	}
 
-	_, _, err = client.Repositories.CreateStatus(ctx, org, repo, ref, repoStatus)
-	if err != nil {
-		if e, ok := err.(*github.RateLimitError); ok {
-			return &util.GithubRateLimitErr{RateLimit: e.Rate.Limit, RateReset: e.Rate.Reset.String()}
-		}
-		return err
-	}
-	return nil
+	_, _, err = c.gh.Repositories.CreateStatus(ctx, org, repo, ref, repoStatus)
+	return rateLimitErr(err)
 }
 
 func (g *Config) ListStatuses(org, repo, ref string) (error, []*github.RepoStatus) {
 
 	ctx := context.Background()
-	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
+	c, err := g.client()
 	if err != nil {
 		return err, nil
 	}
 
-	repoStatuses, _, errorStatus := client.Repositories.ListStatuses(ctx, org, repo, ref, nil)
-	if errorStatus != nil {
-		if e, ok := errorStatus.(*github.RateLimitError); ok {
-			return &util.GithubRateLimitErr{RateLimit: e.Rate.Limit, RateReset: e.Rate.Reset.String()}, nil
-		}
-		return errorStatus, nil
+	repoStatuses, _, err := c.gh.Repositories.ListStatuses(ctx, org, repo, ref, nil)
+	if err != nil {
+		return rateLimitErr(err), nil
 	}
 
 	return nil, repoStatuses
@@ -128,12 +153,12 @@ func (g *Config) ListStatuses(org, repo, ref string) (error, []*github.RepoStatu
 func (g *Config) GetPullRequest(org, repo, ref, sha string) (*github.PullRequest, error) {
 
 	ctx := context.Background()
-	client, err := newGitHubClientWithApp(ctx, g.Endpoint, g.Token, g.App)
+	c, err := g.client()
 	if err != nil {
 		return nil, err
 	}
 
-	pullRequests, _, err := client.PullRequests.ListPullRequestsWithCommit(ctx, org, repo, sha, &github.ListOptions{})
+	pullRequests, _, err := c.gh.PullRequests.ListPullRequestsWithCommit(ctx, org, repo, sha, &github.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -167,17 +192,14 @@ func (g *Config) GetEndpoint() string {
 }
 
 func (g *Config) GetToken() string {
-	// With GitHub App auth, callers need a valid installation token.
-	if g.App.AppID != 0 && g.App.InstallationID != 0 {
-		ts, err := newAppTokenSource(g.App, g.Endpoint)
-		if err != nil {
-			return ""
-		}
-		tok, err := ts.Token()
-		if err != nil {
-			return ""
-		}
-		return tok.AccessToken
+	// With GitHub App auth this is the installation token, otherwise the PAT.
+	c, err := g.client()
+	if err != nil {
+		return ""
 	}
-	return g.Token
+	tok, err := c.tokens.Token()
+	if err != nil {
+		return ""
+	}
+	return tok.AccessToken
 }

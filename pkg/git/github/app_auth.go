@@ -30,7 +30,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-github/v74/github"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 const (
@@ -129,16 +128,20 @@ func (a *appTokenSource) Token() (*oauth2.Token, error) {
 	return tok, nil
 }
 
-// newAuthClient returns an authenticated HTTP client for the given config.
+// newAuthedClient returns an authenticated GitHub client for the given config.
 // GitHub App auth takes precedence over a static PAT when configured.
-func newAuthClient(cfg global.GitHubAppConfig, token, apiBase string) (*http.Client, error) {
-	if cfg.AppID != 0 && cfg.InstallationID != 0 {
-		ts, err := newAppTokenSource(cfg, apiBase)
-		if err != nil {
-			return nil, err
-		}
-		return oauth2.NewClient(context.Background(), ts), nil
-	}
+func newAuthedClient(apiBase, token string, cfg global.GitHubAppConfig) (*authedClient, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	return oauth2.NewClient(context.Background(), ts), nil
+	if cfg.AppID != 0 && cfg.InstallationID != 0 {
+		app, err := newAppTokenSource(cfg, apiBase)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create github auth client: %s", err)
+		}
+		ts = app
+	}
+	gh, err := github.NewClient(oauth2.NewClient(context.Background(), ts)).WithEnterpriseURLs(apiBase, apiBase)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create github client: %s", err)
+	}
+	return &authedClient{gh: gh, tokens: ts}, nil
 }

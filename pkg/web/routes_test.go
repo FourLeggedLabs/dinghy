@@ -705,7 +705,7 @@ func TestBuildPipelinesWhenDinghyIgnoreRegexp2Enabled(t *testing.T) {
 
 	l := mock.NewMockFieldLogger(c)
 	l.EXPECT().Info(gomock.Any()).Times(1)
-	l.EXPECT().Error(gomock.Any()).Times(2)
+	l.EXPECT().Error(gomock.Any()).Times(3)
 	l.EXPECT().Infof(gomock.Any(), gomock.Any()).Times(6)
 	l.EXPECT().Warnf(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
 
@@ -762,7 +762,7 @@ func TestBuildPipelinesWhenDinghyIgnoreRegexp2Disabled(t *testing.T) {
 
 	l := mock.NewMockFieldLogger(c)
 	l.EXPECT().Info(gomock.Any()).Times(1)
-	l.EXPECT().Error(gomock.Any()).Times(2)
+	l.EXPECT().Error(gomock.Any()).Times(3)
 	l.EXPECT().Infof(gomock.Any(), gomock.Any()).Times(6)
 	l.EXPECT().Warnf(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
 
