@@ -1,0 +1,9 @@
+# Image build for GoReleaser dockers_v2. The context contains prebuilt
+# binaries at $TARGETPLATFORM/$BINARY, for example linux/amd64/dinghy_v0.0.4.
+# Source builds stay in Dockerfile.
+FROM gcr.io/distroless/static-debian12:nonroot
+ARG TARGETPLATFORM
+ARG BINARY
+COPY ${TARGETPLATFORM}/${BINARY} /usr/local/bin/dinghy
+EXPOSE 8081
+ENTRYPOINT ["/usr/local/bin/dinghy"]

@@ -19,7 +19,10 @@ checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
 dockers_v2:
-  - images:
+  - dockerfile: Dockerfile.goreleaser
+    build_args:
+      BINARY: "{{ .ProjectName }}_v{{ .Version }}"
+    images:
       - "ghcr.io/{{ tolower .Env.GITHUB_REPOSITORY }}"
     tags:
       - "v{{ .Version }}"

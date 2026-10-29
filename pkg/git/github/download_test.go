@@ -19,16 +19,36 @@ package github
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/fourleggedlabs/dinghy/pkg/cache/local"
 	_ "github.com/fourleggedlabs/dinghy/pkg/dinghyfile"
 	"github.com/fourleggedlabs/dinghy/pkg/log"
 	"github.com/fourleggedlabs/dinghy/pkg/mock"
 	"github.com/golang/mock/gomock"
-	"testing"
-
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
+
+// newGitHubContentsServer serves raw file bodies for known contents paths and a
+// GitHub-style 404 otherwise, so download tests do not call api.github.com.
+func newGitHubContentsServer(t *testing.T, files map[string]string) *httptest.Server {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, ok := files[r.URL.Path]
+		if !ok {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, `{"message":"Not Found"}`)
+			return
+		}
+		fmt.Fprint(w, body)
+	}))
+	t.Cleanup(srv.Close)
+	return srv
+}
 
 func TestEncodeUrl(t *testing.T) {
 	cases := []struct {
@@ -148,6 +168,9 @@ func TestDecodeUrl(t *testing.T) {
 }
 
 func TestDownload(t *testing.T) {
+	endpoint := newGitHubContentsServer(t, map[string]string{
+		"/repos/armory/dinghy/contents/example/dinghyfile": "dinghy",
+	}).URL
 	testCases := map[string]struct {
 		org         string
 		repo        string
@@ -163,7 +186,7 @@ func TestDownload(t *testing.T) {
 			path:   "example/dinghyfile",
 			branch: "master",
 			fs: &FileService{
-				GitHub: &GitHubTest{endpoint: "https://api.github.com", contents: "file contents"},
+				GitHub: &GitHubTest{endpoint: endpoint, contents: "file contents"},
 				Logger: log.DinghyLogs{Logs: map[string]log.DinghyLogStruct{
 					log.SystemLogKey: {
 						Logger:         logrus.New(),
@@ -181,7 +204,7 @@ func TestDownload(t *testing.T) {
 			branch: "branch",
 			fs: &FileService{
 				GitHub: &GitHubTest{
-					endpoint: "https://api.github.com",
+					endpoint: endpoint,
 					contents: "",
 					err:      errors.New("fail"),
 				},
@@ -242,6 +265,10 @@ func stringToSlice(args ...interface{}) []interface{} {
 }
 
 func TestFileService_DownloadContents(t *testing.T) {
+	endpoint := newGitHubContentsServer(t, map[string]string{
+		"/repos/armory/dinghy/contents/example/dinghyfile":                   "dinghy",
+		"/repos/armory/se-pipeline-files/contents/kubernetesdemo/dinghyfile": "dinghy",
+	}).URL
 	type fields struct {
 		cache  *local.Cache
 		GitHub GitHubClient
@@ -263,7 +290,7 @@ func TestFileService_DownloadContents(t *testing.T) {
 		{
 			name: "Content should be downloaded correctly",
 			fields: fields{
-				GitHub: &GitHubTest{endpoint: "https://api.github.com"},
+				GitHub: &GitHubTest{endpoint: endpoint},
 			},
 			args: args{
 				org:    "armory",
@@ -276,7 +303,7 @@ func TestFileService_DownloadContents(t *testing.T) {
 		{
 			name: "Large files should be downloaded correctly",
 			fields: fields{
-				GitHub: &GitHubTest{endpoint: "https://api.github.com"},
+				GitHub: &GitHubTest{endpoint: endpoint},
 			},
 			args: args{
 				org:    "armory",
@@ -289,7 +316,7 @@ func TestFileService_DownloadContents(t *testing.T) {
 		{
 			name: "Download should fail, file not exist.",
 			fields: fields{
-				GitHub: &GitHubTest{endpoint: "https://api.github.com"},
+				GitHub: &GitHubTest{endpoint: endpoint},
 			},
 			args: args{
 				org:    "example",
