@@ -36,17 +36,21 @@ type Status struct {
 	Context     string
 }
 
-// SetCommitStatus sets the commit status
-// TODO: this function needs to return an error but it's currently attached to an interface that does not
-// and changes will affect other types
-func (p *Push) SetCommitStatus(instanceId string, status git.Status, description string) {
-	for _, c := range p.Commits {
-		s := newStatus(instanceId, status, p.DeckBaseURL, description)
-		if err := p.Config.CreateStatus(s, p.Org(), p.Repo(), c.ID); err != nil {
-			p.Logger.Error(err)
-			return
-		}
+// SetCommitStatus sets the status on the push's head commit. Required checks are
+// evaluated on a pull request's head commit, so the push's earlier commits don't
+// need one, and posting one per commit spent the rate limit on statuses nobody
+// reads. A push with no commits (a new branch, a rewind) gets no status.
+func (p *Push) SetCommitStatus(instanceId string, status git.Status, description string) error {
+	if len(p.Commits) == 0 {
+		return nil
 	}
+	head := p.Commits[len(p.Commits)-1].ID
+	s := newStatus(instanceId, status, p.DeckBaseURL, description)
+	if err := p.Config.CreateStatus(s, p.Org(), p.Repo(), head); err != nil {
+		p.Logger.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (p *Push) GetCommitStatus() (error, git.Status, string) {

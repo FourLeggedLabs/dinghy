@@ -59,11 +59,26 @@ Spinnaker application:
 Set `SLACK_DEFAULT_CHANNEL` for a catch-all channel. Channel IDs (e.g.
 `C0123ABCDEF`) work as well as `#channel` names.
 
-**GitHub commit status checks**
+**GitHub commit status checks that survive rate limits**
 
-Unchanged from upstream and fully compatible with GitHub App auth: dinghy
-posts pending/success/failure statuses (context = your `instanceId`) on the
-commits that triggered processing.
+Compatible with GitHub App auth. Dinghy posts pending/success/failure
+statuses (context = your `instanceId`) on the head commit of each push, not on
+every commit in it as upstream does; required checks only look at the head.
+
+When dinghy's GitHub rate limit runs out:
+
+- A push that changes no dinghyfile still gets its "No changes" status.
+  Upstream skips the status whenever it can't first read the commit's existing
+  statuses, which blocks merging in repos that require the check.
+- The push is retried once the limit resets (plus up to 30s of jitter), up to
+  3 times, and the webhook is answered `202 {"status":"retrying"}`. Upstream
+  drops it, so a dinghyfile change merged during the window never reaches
+  Spinnaker. Retries are in memory and don't survive a restart. Dinghy logs
+  `Retrying push to …` for each retry and `Giving up on push to …` when they
+  run out, and tries to post the last failure as an `error` status.
+
+One GitHub client, and so one App installation token, is shared across
+requests with the same credentials.
 
 ### Differences from upstream
 

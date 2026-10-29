@@ -288,7 +288,7 @@ func (p *Push) IsMaster() bool {
 }
 
 // SetCommitStatus sets a commit status
-func (p *Push) SetCommitStatus(instanceId string, s git.Status, description string) {}
+func (p *Push) SetCommitStatus(instanceId string, s git.Status, description string) error { return nil }
 
 func (p *Push) GetCommitStatus() (error, git.Status, string) {
 	return errors.New("functionality not implemented"), "", ""
